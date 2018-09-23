@@ -63,3 +63,11 @@ class Bill(db.Model):
 
     def __repr__(self):
         return "<Bill: {}>".format(self.bill_id)
+
+class User(db.Model):
+
+    __tablename__ = 'users'
+    
+    id = db.Column(db.Integer, primary_key = True)
+    username = db.Column(db.String(32), index = True)
+    password_hash = db.Column(db.String(128))
