@@ -14,6 +14,8 @@ class Config(object):
 class DevelopmentConfig(Config):
     """Configurations for Development."""
     DEBUG = True
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:caasmash@localhost/call_api_db'
 
 
 class TestingConfig(Config):
