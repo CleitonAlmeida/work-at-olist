@@ -38,8 +38,9 @@ class TestCallModel(unittest.TestCase):
             db.session.query(Call).delete()
             db.session.commit()
 
-    def test_call(self):
-        pass
+    def test_populate_db(self):
+        with self.app.app_context():
+            self.assertEqual(db.session.query(Call).filter_by(call_id=4).first().destination_number, '55041997044972')
 
 class TestBillModel(unittest.TestCase):
 
@@ -72,8 +73,9 @@ class TestBillModel(unittest.TestCase):
             db.session.query(Bill).delete()
             db.session.commit()
 
-    def test_call(self):
-        pass
+    def test_populate_db(self):
+        with self.app.app_context():
+            self.assertEqual(db.session.query(Bill).filter_by(price=117.68).first().subscriber_number, '55041991024554')
 
 class TestUserModel(unittest.TestCase):
 
@@ -103,8 +105,9 @@ class TestUserModel(unittest.TestCase):
             db.session.query(User).delete()
             db.session.commit()
 
-    def test_user(self):
-        pass
+    def test_populate_db(self):
+        with self.app.app_context():
+            self.assertEqual(db.session.query(User).filter_by(username='cleitonalmeida').first().username, 'cleitonalmeida')
 
 if __name__ == '__main__':
     unittest.main()
