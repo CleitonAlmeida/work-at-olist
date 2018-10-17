@@ -12,9 +12,9 @@ class Call(db.Model):
     call_id = db.Column(db.Integer, unique=True)
     source_number = db.Column(db.String(15))
     destination_number = db.Column(db.String(15))
-    date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
+    date_created = db.Column(db.DateTime(timezone=True), default=db.func.current_timestamp())
     date_modified = db.Column(
-        db.DateTime, default=db.func.current_timestamp(),
+        db.DateTime(timezone=True), default=db.func.current_timestamp(),
         onupdate=db.func.current_timestamp())
 
     def save(self):
@@ -42,9 +42,6 @@ class Bill(db.Model):
     end_period = db.Column(db.DateTime(timezone=True))
     subscriber_number = db.Column(db.String(15))
     price = db.Column(db.Float())
-
-    def __init__(self, call_id):
-        self.bill_id = bill_id
 
     def save(self):
         db.session.add(self)
