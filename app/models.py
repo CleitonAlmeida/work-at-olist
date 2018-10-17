@@ -42,6 +42,10 @@ class Bill(db.Model):
     end_period = db.Column(db.DateTime(timezone=True))
     subscriber_number = db.Column(db.String(15))
     price = db.Column(db.Float())
+    date_created = db.Column(db.DateTime(timezone=True), default=db.func.current_timestamp())
+    date_modified = db.Column(
+        db.DateTime(timezone=True), default=db.func.current_timestamp(),
+        onupdate=db.func.current_timestamp())
 
     def save(self):
         db.session.add(self)
