@@ -69,11 +69,41 @@ class TestBillModel(unittest.TestCase):
         self.app = create_app(config_name="testing")
         with self.app.app_context():
             #db.drop_all()
-            #db.session.query(Bill).delete()
-            #db.session.commit()
-            pass
+            db.session.query(Bill).delete()
+            db.session.commit()
 
     def test_call(self):
+        pass
+
+class TestUserModel(unittest.TestCase):
+
+    def create_user(self):
+        user = User()
+        user.username = 'cleitonalmeida'
+        user.hash_password = user.hash_password(user.generate_password(10))
+        print(user.hash_password)
+        user.save()
+
+    def setUp(self):
+        self.app = create_app(config_name="testing")
+        self.client = self.app.test_client
+
+        with self.app.app_context():
+            # create all tables
+            db.create_all()
+            self.create_user()
+
+    def tearDown(self):
+        """
+        Ensures that the database is emptied for next unit test
+        """
+        self.app = create_app(config_name="testing")
+        with self.app.app_context():
+            #db.drop_all()
+            db.session.query(User).delete()
+            db.session.commit()
+
+    def test_user(self):
         pass
 
 if __name__ == '__main__':
