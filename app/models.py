@@ -71,6 +71,10 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     username = db.Column(db.String(32), index = True, unique=True)
     password_hash = db.Column(db.String(128))
+    date_created = db.Column(db.DateTime(timezone=True), default=db.func.current_timestamp())
+    date_modified = db.Column(
+        db.DateTime(timezone=True), default=db.func.current_timestamp(),
+        onupdate=db.func.current_timestamp())
 
     def hash_password(self, password):
         self.password_hash = pbkdf2_sha256.hash(password)
