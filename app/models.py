@@ -17,9 +17,6 @@ class Call(db.Model):
         db.DateTime, default=db.func.current_timestamp(),
         onupdate=db.func.current_timestamp())
 
-    def __init__(self, call_id):
-        self.call_id = call_id
-
     def save(self):
         db.session.add(self)
         db.session.commit()
@@ -67,7 +64,7 @@ class Bill(db.Model):
 class User(db.Model):
 
     __tablename__ = 'users'
-    
+
     id = db.Column(db.Integer, primary_key = True)
     username = db.Column(db.String(32), index = True)
     password_hash = db.Column(db.String(128))
