@@ -1,6 +1,6 @@
 # app/models.py
 
-from app import db
+from . import db
 from passlib.hash import pbkdf2_sha256
 from passlib import pwd
 
