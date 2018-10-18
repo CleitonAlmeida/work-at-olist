@@ -18,11 +18,11 @@ class TestConfig(unittest.TestCase):
         #app_config[os.environ['APP_SETTINGS']].
         set_logger(self)
 
-    def test_app_settings(self):
-        """ Tests APP_SETTINGS environ is not set. """
-        self.logger.info('app_settings %s', os.environ.get('APP_SETTINGS'))
-        self.assertIsNotNone(os.environ.get('APP_SETTINGS', None))
-        self.assertIn(os.environ.get('APP_SETTINGS', None), ['development', 'testing', 'production'])
+    def test_flask_env(self):
+        """ Tests FLASK_ENV environ is not set. """
+        self.logger.info('FLASK_ENV %s', os.environ.get('FLASK_ENV'))
+        self.assertIsNotNone(os.environ.get('FLASK_ENV', None))
+        self.assertIn(os.environ.get('FLASK_ENV', None), ['development', 'testing', 'production'])
 
     def test_db_uri_requirement(self):
         """ Tests SQLALCHEMY_DATABASE_URI environ is not set. """
@@ -33,6 +33,9 @@ class TestConfig(unittest.TestCase):
     def test_secret_key_requirement(self):
         """ Tests SECRET_KEY environ is not set. """
         self.assertIsNotNone(os.environ.get('SECRET_KEY', None))
+
+    def test_flask_app_requirement(self):
+        self.assertIsNotNone(os.environ.get('FLASK_APP', None))
 
 
 if __name__ == '__main__':
