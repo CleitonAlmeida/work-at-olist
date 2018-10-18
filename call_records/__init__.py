@@ -16,8 +16,8 @@ def configure_db(app):
 def configure_logging(app, config_name):
     """ Configure logging. """
     # Skip logging configuration for debug mode.
-    """if app.debug or not app.config['FILE_LOGGING']:
-        return"""
+    if app.debug or not app.config['FILE_LOGGING']:
+        return
 
     # http://flask.pocoo.org/docs/errorhandling/
     app.logger.setLevel(logging.INFO)
