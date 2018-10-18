@@ -3,10 +3,9 @@ import os
 import logging
 from call_records.config import app_config
 
-def set_logger(self):
+def set_logger(self, config):
     self.logger = logging.getLogger()
-    fh = logging.handlers.RotatingFileHandler('logs/call_records.log', maxBytes=10240, backupCount=5)
-    #fh.setLevel(logging.INFO)#no matter what level I set here
+    fh = logging.handlers.RotatingFileHandler(config.LOG_PATH, maxBytes=int(config.LOG_MAX_BYTES), backupCount=int(config.LOG_BACKUP_COUNT))
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s: %(message)s')
     fh.setFormatter(formatter)
     self.logger.addHandler(fh)
@@ -15,8 +14,8 @@ def set_logger(self):
 class TestConfig(unittest.TestCase):
 
     def setUp(self):
-        #app_config[os.environ['APP_SETTINGS']].
-        set_logger(self)
+        config = app_config[os.environ['FLASK_ENV']]
+        set_logger(self, config)
 
     def test_flask_env(self):
         """ Tests FLASK_ENV environ is not set. """
