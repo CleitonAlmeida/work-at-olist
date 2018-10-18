@@ -24,6 +24,9 @@ def env_var(key, default=None, required=False):
 
 class Config(object):
     """Parent configuration class."""
+    FLASK_ENV = env_var('FLASK_ENV', default=None)
+    FLASK_APP = env_var('FLASK_APP', default='run.py')
+
     DEBUG = env_var('DEBUG', default=False)
     CSRF_ENABLED = True
     SECRET_KEY = env_var('SECRET_KEY', required=True)

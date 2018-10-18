@@ -7,7 +7,7 @@ from call_records import db, create_app
 from call_records import models
 
 
-app = create_app(config_name=os.getenv('APP_SETTINGS'))
+app = create_app(config_name=os.getenv('FLASK_ENV'))
 migrate = Migrate(app, db)
 manager = Manager(app)
 
