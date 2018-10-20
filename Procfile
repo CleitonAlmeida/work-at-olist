@@ -1,1 +1,1 @@
-web: python manage.py db migrate; python manage.py db upgrade; gunicorn run:app
+web: python manage.py db init; python manage.py db migrate; python manage.py db upgrade; gunicorn run:app
