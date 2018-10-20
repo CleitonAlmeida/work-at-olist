@@ -1,1 +1,1 @@
-web: flask run ${HOST}:${PORT}
+web: gunicorn run:app
