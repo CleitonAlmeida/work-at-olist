@@ -24,8 +24,12 @@ def env_var(key, default=None, required=False):
 
 class Config(object):
     """Parent configuration class."""
+    #Flask variables
     FLASK_ENV = env_var('FLASK_ENV', default=None)
     FLASK_APP = env_var('FLASK_APP', default='run.py')
+    HOST = env_var('HOST', default='0.0.0.0')
+    PORT = env_var('PORT', default='5000')
+    SERVER_NAME = HOST+':'+PORT
 
     DEBUG = env_var('DEBUG', default=False)
     CSRF_ENABLED = True
