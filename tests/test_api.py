@@ -14,6 +14,7 @@ class TestApi(unittest.TestCase):
     def test_index(self):
         """ Tests that API route returns 200 and JSON mimetype. """
         rv = self.client.get('/')
+        #self.app.logger.info('testing index')
         self.assertTrue(rv.data)
         self.assertEqual(rv.status_code, 200)
         self.assertEqual(rv.mimetype, 'application/json')

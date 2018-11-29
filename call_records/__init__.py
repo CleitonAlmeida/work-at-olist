@@ -15,12 +15,8 @@ def configure_db(app):
 
 def configure_logging(app, config_name):
     """ Configure logging. """
-    # Skip logging configuration for debug mode.
-    if app.debug or not app.config['FILE_LOGGING']:
-        return
 
     # http://flask.pocoo.org/docs/errorhandling/
-    app.logger.setLevel(logging.INFO)
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 
@@ -28,8 +24,11 @@ def configure_logging(app, config_name):
     log_file_handler.setLevel(logging.INFO)
     log_file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
 
-    app.logger.addHandler(log_file_handler)
+    #app.logger.addHandler(log_file_handler)
     logger.addHandler(log_file_handler)
+    app.logger.removeHandler(default_handler)
+    app.logger.setLevel(logging.INFO)
+    app.logger.addHandler(log_file_handler)
 
 def configure_blueprint(app):
     app.register_blueprint(home.bp)
