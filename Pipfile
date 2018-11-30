@@ -23,6 +23,7 @@ Werkzeug = "==0.14.1"
 passlib = "*"
 python-dotenv = "*"
 gunicorn = "*"
+flask-restplus = "*"
 
 [dev-packages]
 
