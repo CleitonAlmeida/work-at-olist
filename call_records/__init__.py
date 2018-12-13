@@ -1,12 +1,16 @@
 # app/__init__.property
 
 from flask import Flask
+from flask_restplus import Api
 from flask_sqlalchemy import SQLAlchemy
 from logging.handlers import RotatingFileHandler
 import logging
 from . import home
 from .config import app_config
 from flask.logging import default_handler
+
+from call_records.controller.user import User as UserController
+from call_records.dto.user import UserDto
 
 db = SQLAlchemy()
 
@@ -24,7 +28,6 @@ def configure_logging(app, config_name):
     log_file_handler.setLevel(logging.INFO)
     log_file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
 
-    #app.logger.addHandler(log_file_handler)
     logger.addHandler(log_file_handler)
     app.logger.removeHandler(default_handler)
     app.logger.setLevel(logging.INFO)
@@ -33,6 +36,13 @@ def configure_logging(app, config_name):
 def configure_blueprint(app):
     app.register_blueprint(home.bp)
 
+def configure_namespace(app):
+    api = Api(app,
+              title='FLASK API CALL RECORDS',
+              version='1.0',
+              description='An api for receives call detail records and calculates monthly bills')
+    api.add_namespace(UserDto.api, path='/user')
+
 def create_app(config_name):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(app_config[config_name])
@@ -40,5 +50,6 @@ def create_app(config_name):
     configure_logging(app, config_name)
     configure_blueprint(app)
     configure_db(app)
+    configure_namespace(app)
 
     return app

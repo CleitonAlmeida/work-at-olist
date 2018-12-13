@@ -82,9 +82,8 @@ class TestUserModel(unittest.TestCase):
 
     def create_user(self):
         user = User()
-        user.username = 'cleitonalmeida'
+        user.username = 'cleitonteste'
         user.hash_password = user.hash_password(user.generate_password(10))
-        print(user.hash_password)
         user.save()
 
     def setUp(self):
@@ -103,12 +102,12 @@ class TestUserModel(unittest.TestCase):
         self.app = create_app(config_name="testing")
         with self.app.app_context():
             #db.drop_all()
-            db.session.query(User).delete()
+            db.session.query(User).filter_by(username='cleitonteste').first().delete()
             db.session.commit()
 
     def test_populate_db(self):
         with self.app.app_context():
-            self.assertEqual(db.session.query(User).filter_by(username='cleitonalmeida').first().username, 'cleitonalmeida')
+            self.assertEqual(db.session.query(User).filter_by(username='cleitonteste').first().username, 'cleitonteste')
 
 if __name__ == '__main__':
     unittest.main()

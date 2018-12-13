@@ -4,7 +4,7 @@ bp = Blueprint('home', __name__, url_prefix='/')
 
 import os
 
-@bp.route('/')
+@bp.route('/hello')
 def hello_world():
     port = int(os.environ.get('PORT', 5000))
     host = os.environ.get('HOST', '0.0.0.0')
