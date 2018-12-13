@@ -22,14 +22,14 @@ class TestApi(unittest.TestCase):
     def test_0_index(self):
         """ Tests that API route returns 200 and JSON mimetype. """
         with self.app.app_context():
-            rv = self.client.get('/user/')
+            rv = self.client.get('/api/user/')
             self.assertEqual(rv.status_code, 200)
             self.assertEqual(rv.mimetype, 'application/json')
 
     def test_1_post_user(self):
         """ Tests that API route post an user. """
         with self.app.app_context():
-            rv = self.client.post('/user/', data=dict(
+            rv = self.client.post('/api/user/', data=dict(
                 username=self.username,
                 password=self.password
             ))
@@ -42,7 +42,7 @@ class TestApi(unittest.TestCase):
     def test_1_post_user_empty_fields(self):
         """ Tests that API inform empty fields. """
         with self.app.app_context():
-            rv = self.client.post('/user/', data=dict(
+            rv = self.client.post('/api/user/', data=dict(
                 username=self.username
             ))
             self.assertEqual(rv.status_code, 400)
@@ -51,7 +51,7 @@ class TestApi(unittest.TestCase):
     def test_2_get_specific_user(self):
         """ Tests that API get a specific user. """
         with self.app.app_context():
-            rv = self.client.get('/user/'+self.username)
+            rv = self.client.get('/api/user/'+self.username)
             self.logger.info('address /user/%s', self.username)
 
             data = json.loads(rv.data)
@@ -65,12 +65,11 @@ class TestApi(unittest.TestCase):
 
     def test_2_get_wrong_user(self):
         with self.app.app_context():
-            rv = self.client.get('/user/blablabla')
+            rv = self.client.get('/api/user/blablabla')
             data = json.loads(rv.data)
             self.logger.info('data %s', data)
             self.assertEqual(rv.status_code, 404)
             self.assertEqual(rv.mimetype, 'application/json')
-            self.assertRegex('User not found.', data['message'])
 
 
 if __name__ == '__main__':

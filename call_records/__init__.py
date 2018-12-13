@@ -52,7 +52,7 @@ def configure_namespace(app):
               doc='/api',
               authorizations=authorizations,
               security='Bearer Auth')
-    api.add_namespace(UserDto.ns, path='/user')
+    api.add_namespace(UserDto.ns, path='/api/user')
 
 def configure_jwt(app):
     app.config['JWT_SECRET_KEY'] = 'AUIRgoasdgfuyAUYFaisuebf'  # Change this!
