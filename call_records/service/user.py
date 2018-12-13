@@ -13,7 +13,7 @@ def save_new_user(data):
             username = data['username'],
             password_hash = data['password']
         )
-        new_user.password_hash = new_user.gen_hash(new_user.password_hash)
+        new_user.gen_hash(data['password'])
         save_changes(new_user)
         response_object = {
             'status': 'success',
@@ -34,3 +34,36 @@ def get_a_user(username):
 def get_all_users():
     from call_records.model.user import User
     return User.query.all()
+
+def login_user(data):
+    from call_records.model.user import User
+    from flask import current_app
+    from flask_jwt_extended import (
+        JWTManager, jwt_required, create_access_token,
+        get_jwt_identity
+    )
+
+    try:
+        #current_app.logger.warning('Username %s', data.get('username'))
+        user = User.query.filter_by(username=data.get('username')).first()
+        if user and user.verify_password(password=data.get('password')):
+            access_token = create_access_token(identity=data.get('username'))
+            response_object = {
+                'status': 'success',
+                'message': 'Successfully logged in',
+                'access_token': access_token
+            }
+            return response_object, 200
+        else:
+            response_object = {
+                'status': 'fail',
+                'message': 'Username or password does not match.'
+            }
+            return response_object, 401
+    except Exception as e:
+        current_app.logger.warning('ERROR Login %s', e)
+        response_object = {
+            'status': 'fail',
+            'message': 'Try again'
+        }
+        return response_object, 500

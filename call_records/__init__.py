@@ -8,6 +8,7 @@ import logging
 from . import home
 from .config import app_config
 from flask.logging import default_handler
+from flask_jwt_extended import JWTManager
 
 from call_records.controller.user import User as UserController
 from call_records.dto.user import UserDto
@@ -43,13 +44,19 @@ def configure_namespace(app):
               description='An api for receives call detail records and calculates monthly bills')
     api.add_namespace(UserDto.ns, path='/user')
 
+def configure_jwt(app):
+    app.config['JWT_SECRET_KEY'] = 'AUIRgoasdgfuyAUYFaisuebf'  # Change this!
+    jwt = JWTManager(app)
+
 def create_app(config_name):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(app_config[config_name])
 
     configure_logging(app, config_name)
-    configure_blueprint(app)
     configure_db(app)
+    configure_jwt(app)
+    configure_blueprint(app)
     configure_namespace(app)
+
 
     return app

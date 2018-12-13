@@ -2,11 +2,17 @@ from flask import current_app
 from flask_restplus import Resource
 
 from call_records.dto.user import UserDto
-from call_records.service.user import save_new_user, get_a_user, get_all_users
+from call_records.service.user import save_new_user, get_a_user, get_all_users, login_user
 from flask_restplus import reqparse
 
 ns = UserDto.ns
 userDtoModel = UserDto.user
+
+def get_parser_user():
+    parser = reqparse.RequestParser()
+    parser.add_argument('username', type=str, required=True)
+    parser.add_argument('password', type=str, required=True)
+    return parser
 
 @ns.route('/')
 class UserList(Resource):
@@ -21,9 +27,7 @@ class UserList(Resource):
     @ns.param('password', 'The password')
     def post(self):
         """Create a new user"""
-        parser = reqparse.RequestParser()
-        parser.add_argument('username', type=str, required=True)
-        parser.add_argument('password', type=str, required=True)
+        parser = get_parser_user()
         data = parser.parse_args()
 
         return save_new_user(data=data)
@@ -42,3 +46,15 @@ class User(Resource):
             ns.abort(404, 'User not found.')
         else:
             return user
+
+@ns.route('/login')
+class UserLogin(Resource):
+    @ns.doc('To Login in a system')
+    @ns.param('username', 'The User identifier')
+    @ns.param('password', 'The password')
+    def post(self):
+        """Login"""
+        parser = get_parser_user()
+        data = parser.parse_args()
+
+        return login_user(data=data)

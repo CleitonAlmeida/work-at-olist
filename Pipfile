@@ -24,6 +24,7 @@ passlib = "*"
 python-dotenv = "*"
 gunicorn = "*"
 flask-restplus = "*"
+flask-jwt-extended = "*"
 
 [dev-packages]
 
