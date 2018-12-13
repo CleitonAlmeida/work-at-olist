@@ -17,13 +17,13 @@ def save_new_user(data):
         save_changes(new_user)
         response_object = {
             'status': 'success',
-            'message': 'Successfully registered.'
+            'message': 'Successfully registered'
         }
         return response_object, 201
     else:
         response_object = {
             'status': 'fail',
-            'message': 'User already exists. Please Log in.',
+            'message': 'User already exists. Please Log in',
         }
         return response_object, 409
 

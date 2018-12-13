@@ -38,10 +38,20 @@ def configure_blueprint(app):
     app.register_blueprint(home.bp)
 
 def configure_namespace(app):
+    authorizations = {
+        'Bearer Auth': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization'
+        }
+    }
     api = Api(app,
               title='FLASK API CALL RECORDS',
               version='1.0',
-              description='An api for receives call detail records and calculates monthly bills')
+              description='An api for receives call detail records and calculates monthly bills',
+              doc='/api',
+              authorizations=authorizations,
+              security='Bearer Auth')
     api.add_namespace(UserDto.ns, path='/user')
 
 def configure_jwt(app):

@@ -7,6 +7,7 @@ from flask_restplus import reqparse
 
 ns = UserDto.ns
 userDtoModel = UserDto.user
+userLogInDtoModel = UserDto.userLogIn
 
 def get_parser_user():
     parser = reqparse.RequestParser()
@@ -15,16 +16,18 @@ def get_parser_user():
     return parser
 
 @ns.route('/')
-class UserList(Resource):
-    @ns.doc('list_of_registered_users')
+class User(Resource):
     @ns.marshal_list_with(userDtoModel, envelope='data')
     def get(self):
         #current_app.logger.info('Pass in user list get')
         """List all registered users"""
         return get_all_users()
 
-    @ns.param('username', 'The User identifier')
-    @ns.param('password', 'The password')
+    @ns.expect(get_parser_user(), validate=True)
+    @ns.doc(responses={
+        201: 'Successfully registered',
+        409: 'User already exists. Please Log in'
+    })
     def post(self):
         """Create a new user"""
         parser = get_parser_user()
@@ -36,11 +39,14 @@ class UserList(Resource):
 @ns.route('/<username>')
 @ns.param('username', 'The User identifier')
 @ns.response(404, 'User not found.')
-class User(Resource):
-    @ns.doc('Get a user by username')
+class UserSpecific(Resource):
     @ns.marshal_with(userDtoModel)
+    @ns.doc(responses={
+        200: 'Success',
+        404: 'User not found'
+    })
     def get(self, username):
-        """Get a user given its identifier"""
+        """Get an user given its identifier"""
         user = get_a_user(username)
         if not user:
             ns.abort(404, 'User not found.')
@@ -49,11 +55,15 @@ class User(Resource):
 
 @ns.route('/login')
 class UserLogin(Resource):
-    @ns.doc('To Login in a system')
-    @ns.param('username', 'The User identifier')
-    @ns.param('password', 'The password')
+    @ns.expect(get_parser_user(), validate=True)
+    @ns.marshal_with(userLogInDtoModel)
+    @ns.doc(responses={
+        200: 'Success',
+        401: 'Username or password does not match'
+    })
+    @ns.doc(security=[])
     def post(self):
-        """Login"""
+        """To Login in"""
         parser = get_parser_user()
         data = parser.parse_args()
 
