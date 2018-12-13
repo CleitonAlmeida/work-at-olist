@@ -5,12 +5,15 @@ def save_changes(data):
 
 def save_new_user(data):
     from call_records.model.user import User
+    from flask import current_app
+
     user = User.query.filter_by(username=data['username']).first()
     if not user:
         new_user = User(
-            username = 'cleitonalmeida'
+            username = data['username'],
+            password_hash = data['password']
         )
-        new_user.hash_password = new_user.hash_password(user.generate_password(10))
+        new_user.password_hash = new_user.gen_hash(new_user.password_hash)
         save_changes(new_user)
         response_object = {
             'status': 'success',

@@ -41,7 +41,7 @@ def configure_namespace(app):
               title='FLASK API CALL RECORDS',
               version='1.0',
               description='An api for receives call detail records and calculates monthly bills')
-    api.add_namespace(UserDto.api, path='/user')
+    api.add_namespace(UserDto.ns, path='/user')
 
 def create_app(config_name):
     app = Flask(__name__, instance_relative_config=True)

@@ -1,32 +1,44 @@
-from flask import request
 from flask import current_app
 from flask_restplus import Resource
 
 from call_records.dto.user import UserDto
-from call_records.service.user import get_a_user, get_all_users
+from call_records.service.user import save_new_user, get_a_user, get_all_users
+from flask_restplus import reqparse
 
-api = UserDto.api
+ns = UserDto.ns
 userDtoModel = UserDto.user
 
-@api.route('/')
+@ns.route('/')
 class UserList(Resource):
-    @api.doc('list_of_registered_users')
-    @api.marshal_list_with(userDtoModel, envelope='data')
+    @ns.doc('list_of_registered_users')
+    @ns.marshal_list_with(userDtoModel, envelope='data')
     def get(self):
         #current_app.logger.info('Pass in user list get')
         """List all registered users"""
         return get_all_users()
 
-@api.route('/<username>')
-@api.param('username', 'The User identifier')
-@api.response(404, 'User not found.')
+    @ns.param('username', 'The User identifier')
+    @ns.param('password', 'The password')
+    def post(self):
+        """Create a new user"""
+        parser = reqparse.RequestParser()
+        parser.add_argument('username', type=str, required=True)
+        parser.add_argument('password', type=str, required=True)
+        data = parser.parse_args()
+
+        return save_new_user(data=data)
+
+
+@ns.route('/<username>')
+@ns.param('username', 'The User identifier')
+@ns.response(404, 'User not found.')
 class User(Resource):
-    @api.doc('Get a user by username')
-    @api.marshal_with(userDtoModel)
+    @ns.doc('Get a user by username')
+    @ns.marshal_with(userDtoModel)
     def get(self, username):
         """Get a user given its identifier"""
         user = get_a_user(username)
         if not user:
-            api.abort(404, 'User not found.')
+            ns.abort(404, 'User not found.')
         else:
             return user

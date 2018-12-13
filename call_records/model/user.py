@@ -14,7 +14,7 @@ class User(db.Model):
         db.DateTime(timezone=True), default=db.func.current_timestamp(),
         onupdate=db.func.current_timestamp())
 
-    def hash_password(self, password):
+    def gen_hash(self, password):
         self.password_hash = pbkdf2_sha256.hash(password)
 
     def verify_password(self, password):
