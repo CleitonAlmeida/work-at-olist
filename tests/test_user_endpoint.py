@@ -27,6 +27,7 @@ class TestApi(unittest.TestCase):
             self.assertEqual(rv.mimetype, 'application/json')
 
     def test_1_post_user(self):
+        """ Tests that API route post an user. """
         with self.app.app_context():
             rv = self.client.post('/user/', data=dict(
                 username=self.username,
@@ -38,7 +39,17 @@ class TestApi(unittest.TestCase):
             data = json.loads(rv.data)
             self.assertEqual(data['status'], 'success')
 
+    def test_1_post_user_empty_fields(self):
+        """ Tests that API inform empty fields. """
+        with self.app.app_context():
+            rv = self.client.post('/user/', data=dict(
+                username=self.username
+            ))
+            self.assertEqual(rv.status_code, 400)
+            self.assertEqual(rv.mimetype, 'application/json')
+
     def test_2_get_specific_user(self):
+        """ Tests that API get a specific user. """
         with self.app.app_context():
             rv = self.client.get('/user/'+self.username)
             self.logger.info('address /user/%s', self.username)
@@ -51,6 +62,15 @@ class TestApi(unittest.TestCase):
 
             db.session.query(User).filter_by(username=self.username).delete()
             db.session.commit()
+
+    def test_2_get_wrong_user(self):
+        with self.app.app_context():
+            rv = self.client.get('/user/blablabla')
+            data = json.loads(rv.data)
+            self.logger.info('data %s', data)
+            self.assertEqual(rv.status_code, 404)
+            self.assertEqual(rv.mimetype, 'application/json')
+            self.assertRegex('User not found.', data['message'])
 
 
 if __name__ == '__main__':
