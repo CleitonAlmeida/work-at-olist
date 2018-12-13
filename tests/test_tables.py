@@ -83,7 +83,7 @@ class TestUserModel(unittest.TestCase):
     def create_user(self):
         user = User()
         user.username = 'cleitonteste'
-        user.hash_password = user.hash_password(user.generate_password(10))
+        user.password_hash = user.gen_hash(user.generate_password(10))
         user.save()
 
     def setUp(self):
