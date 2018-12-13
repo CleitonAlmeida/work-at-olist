@@ -1,13 +1,11 @@
 import unittest
 import os
 from tests import set_logger
-from call_records.config import app_config
 
 class TestConfig(unittest.TestCase):
 
     def setUp(self):
-        config = app_config[os.environ['FLASK_ENV']]
-        self.logger = set_logger(self, config)
+        self.logger = set_logger(self)
 
     def test_flask_env(self):
         """ Tests FLASK_ENV environ is not set. """
