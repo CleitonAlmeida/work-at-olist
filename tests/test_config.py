@@ -1,21 +1,13 @@
 import unittest
 import os
-import logging
+from tests import set_logger
 from call_records.config import app_config
-
-def set_logger(self, config):
-    self.logger = logging.getLogger()
-    fh = logging.handlers.RotatingFileHandler(config.LOG_PATH, maxBytes=int(config.LOG_MAX_BYTES), backupCount=int(config.LOG_BACKUP_COUNT))
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s: %(message)s')
-    fh.setFormatter(formatter)
-    self.logger.addHandler(fh)
-    self.logger.setLevel(logging.INFO)
 
 class TestConfig(unittest.TestCase):
 
     def setUp(self):
         config = app_config[os.environ['FLASK_ENV']]
-        set_logger(self, config)
+        self.logger = set_logger(self, config)
 
     def test_flask_env(self):
         """ Tests FLASK_ENV environ is not set. """
