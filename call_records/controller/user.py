@@ -3,6 +3,7 @@ from flask_restplus import Resource
 
 from call_records.dto.user import UserDto
 from call_records.service.user import save_new_user, get_a_user, get_all_users, login_user
+from call_records.controller import user_required
 from flask_restplus import reqparse
 
 ns = UserDto.ns
@@ -17,12 +18,14 @@ def get_parser_user():
 
 @ns.route('/')
 class User(Resource):
-    @ns.marshal_list_with(userDtoModel, envelope='data')
+    @user_required
+    @ns.marshal_list_with(userDtoModel, envelope='data', skip_none=True)
     def get(self):
         #current_app.logger.info('Pass in user list get')
         """List all registered users"""
         return get_all_users()
 
+    @user_required
     @ns.expect(get_parser_user(), validate=True)
     @ns.doc(responses={
         201: 'Successfully registered',
@@ -40,6 +43,7 @@ class User(Resource):
 @ns.param('username', 'The User identifier')
 @ns.response(404, 'User not found.')
 class UserSpecific(Resource):
+    @user_required
     @ns.marshal_with(userDtoModel)
     @ns.doc(responses={
         200: 'Success',
@@ -56,7 +60,7 @@ class UserSpecific(Resource):
 @ns.route('/login')
 class UserLogin(Resource):
     @ns.expect(get_parser_user(), validate=True)
-    @ns.marshal_with(userLogInDtoModel)
+    @ns.marshal_with(userLogInDtoModel, skip_none=True)
     @ns.doc(responses={
         200: 'Success',
         401: 'Username or password does not match'
