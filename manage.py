@@ -6,6 +6,7 @@ from flask_migrate import Migrate, MigrateCommand
 from call_records import db, create_app
 from call_records import models
 from call_records.model.user import User
+from call_records.model.tokenblacklist import TokenBlacklist
 
 
 app = create_app(config_name=os.getenv('FLASK_ENV'))
