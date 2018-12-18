@@ -56,6 +56,8 @@ def configure_namespace(app):
 
 def configure_jwt(app):
     app.config['JWT_SECRET_KEY'] = 'AUIRgoasdgfuyAUYFaisuebf'  # Change this!
+    app.config['JWT_BLACKLIST_ENABLED'] = True
+    app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
     jwt = JWTManager(app)
 
     # Create a function that will be called whenever create_access_token
@@ -73,6 +75,12 @@ def configure_jwt(app):
     @jwt.user_identity_loader
     def user_identity_lookup(user):
         return user.username
+
+    # Define our callback function to check if a token has been revoked or not
+    @jwt.token_in_blacklist_loader
+    def check_if_token_revoked(decoded_token):
+        from call_records.service.tokenblacklist import is_token_revoked
+        return is_token_revoked(decoded_token)
 
 def configure_user_admin(app):
     username = app.config.get('ADMIN_USERNAME')

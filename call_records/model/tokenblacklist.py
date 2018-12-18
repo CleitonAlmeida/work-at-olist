@@ -21,6 +21,11 @@ class TokenBlacklist(db.Model):
             'expires': self.expires
         }
 
+    def revoke(self):
+        self.revoked = True
+        db.session.add(self)
+        db.session.commit()
+
     def save(self):
         db.session.add(self)
         db.session.commit()
