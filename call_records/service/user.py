@@ -51,7 +51,7 @@ def login_user(data):
     try:
         user = User.query.filter_by(username=data.get('username')).first()
         if user and user.verify_password(password=data.get('password')):
-            access_token = create_access_token(identity=data.get('username'))
+            access_token = create_access_token(identity=user)
             response_object = {
                 'status': 'success',
                 'message': 'Successfully logged in',

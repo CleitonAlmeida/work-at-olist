@@ -58,6 +58,22 @@ def configure_jwt(app):
     app.config['JWT_SECRET_KEY'] = 'AUIRgoasdgfuyAUYFaisuebf'  # Change this!
     jwt = JWTManager(app)
 
+    # Create a function that will be called whenever create_access_token
+    # is used. It will take whatever object is passed into the
+    # create_access_token method, and lets us define what custom claims
+    # should be added to the access token.
+    @jwt.user_claims_loader
+    def add_claims_to_access_token(user):
+        return {'is_admin': user.is_admin}
+
+    # Create a function that will be called whenever create_access_token
+    # is used. It will take whatever object is passed into the
+    # create_access_token method, and lets us define what the identity
+    # of the access token should be.
+    @jwt.user_identity_loader
+    def user_identity_lookup(user):
+        return user.username
+
 def configure_user_admin(app):
     username = app.config.get('ADMIN_USERNAME')
     password = app.config.get('ADMIN_PASSWORD')
