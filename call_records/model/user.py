@@ -9,6 +9,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     username = db.Column(db.String(32), index = True, unique=True)
     password_hash = db.Column(db.String(128))
+    is_admin = db.Column(db.Boolean(), nullable=False, default=False)
     date_created = db.Column(db.DateTime(timezone=True), default=db.func.current_timestamp())
     date_modified = db.Column(
         db.DateTime(timezone=True), default=db.func.current_timestamp(),
