@@ -16,6 +16,9 @@ class TestApi(unittest.TestCase):
     username_a = 'teste_admin'
     password_a = 'teste123a'
 
+    admin_access_token = None
+    normal_access_token = None
+
     @classmethod
     def setUpClass(cls):
         cls.app = create_app(config_name="testing")
@@ -226,6 +229,7 @@ class TestApi(unittest.TestCase):
             self.assertEqual(rv.mimetype, 'application/json')
 
             self.assertEqual(data['status'], 'success')
+            self.assertIsNotNone(data['access_token'])
             self.admin_access_token = data['access_token']
 
             #Another request with the new token
@@ -245,31 +249,64 @@ class TestApi(unittest.TestCase):
             self.assertEqual(data['status'], 'fail')
             self.assertEqual(data['message'], 'Token has been revoked')
 
-    def test_3_refresh_token(self):
-        """ Tests that API get a refresh token (admin). """
+    def test_3_1_refresh_token(self):
+        """ Tests that API get a refresh token. """
         with self.app.app_context():
             old_token = self.normal_access_token
             rv = self.client.post('/api/user/refresh', headers={
                 "Authorization": "Bearer "+self.normal_access_token
             })
             data = json.loads(rv.data)
-            self.logger.info('data %s', data)
             self.assertEqual(rv.status_code, 200)
             self.assertEqual(rv.mimetype, 'application/json')
 
             self.assertEqual(data['status'], 'success')
-            self.normal_access_token = data['access_token']
+            self.assertIsNotNone(data['access_token'])
+            """self.normal_access_token = data['access_token']
+            I dont update normal_access_token var (lookup)
+            because of this problem
+            https://stackoverflow.com/questions/21447740/persist-variable-changes-between-tests-in-unittest
+            So I did by this way
+            """
+            self.__class__.normal_access_token = data['access_token']
 
             #Another request with the new token
             rv = self.client.post('/api/user/refresh', headers={
                 "Authorization": "Bearer "+self.normal_access_token
             })
+            data = json.loads(rv.data)
             self.assertEqual(rv.status_code, 200)
             self.assertEqual(rv.mimetype, 'application/json')
+            self.assertEqual(data['status'], 'success')
+            self.assertIsNotNone(data['access_token'])
+            self.__class__.normal_access_token = data['access_token']
 
             #Another request with old token (invalid)
             rv = self.client.post('/api/user/refresh', headers={
                 "Authorization": "Bearer "+old_token
+            })
+            self.assertEqual(rv.status_code, 401)
+            self.assertEqual(rv.mimetype, 'application/json')
+            data = json.loads(rv.data)
+            self.assertEqual(data['status'], 'fail')
+            self.assertEqual(data['message'], 'Token has been revoked')
+
+    def test_4_logout(self):
+        """ Tests logout. """
+        with self.app.app_context():
+            #old_token = self.normal_access_token
+            rv = self.client.post('/api/user/logout', headers={
+                "Authorization": "Bearer "+self.normal_access_token
+            })
+            self.assertEqual(rv.status_code, 200)
+            self.assertEqual(rv.mimetype, 'application/json')
+            data = json.loads(rv.data)
+            self.assertEqual(data['status'], 'success')
+            self.assertEqual(data['message'], 'Logout Successfully')
+
+            #Another request with the token revoked
+            rv = self.client.get('/api/user/', headers={
+                "Authorization": "Bearer "+self.normal_access_token
             })
             self.assertEqual(rv.status_code, 401)
             self.assertEqual(rv.mimetype, 'application/json')
