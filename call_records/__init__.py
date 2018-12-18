@@ -58,6 +58,19 @@ def configure_jwt(app):
     app.config['JWT_SECRET_KEY'] = 'AUIRgoasdgfuyAUYFaisuebf'  # Change this!
     jwt = JWTManager(app)
 
+def configure_user_admin(app):
+    username = app.config.get('ADMIN_USERNAME')
+    password = app.config.get('ADMIN_PASSWORD')
+
+    if username and password:
+        app.app_context().push()
+        from call_records.service.user import get_a_user_or_admin, save_new_user
+        user_admin = get_a_user_or_admin(username)
+        if not user_admin:
+            data = {'username': username, 'password': password, 'is_admin': 1}
+            save_new_user(data)
+
+
 def create_app(config_name):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(app_config[config_name])
@@ -67,6 +80,6 @@ def create_app(config_name):
     configure_jwt(app)
     configure_blueprint(app)
     configure_namespace(app)
-
+    configure_user_admin(app)
 
     return app

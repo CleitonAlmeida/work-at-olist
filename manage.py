@@ -5,6 +5,7 @@ from flask_script import Manager # class for handling a set of commands
 from flask_migrate import Migrate, MigrateCommand
 from call_records import db, create_app
 from call_records import models
+from call_records.model.user import User
 
 
 app = create_app(config_name=os.getenv('FLASK_ENV'))

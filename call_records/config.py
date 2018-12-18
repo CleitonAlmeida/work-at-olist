@@ -49,6 +49,9 @@ class Config(object):
     LOG_MAX_BYTES = env_var('LOG_MAX_BYTES', default='100000')
     LOG_BACKUP_COUNT = env_var('LOG_BACKUP_COUNT', default='2')
 
+    ADMIN_USERNAME = env_var('ADMIN_USERNAME', '')
+    ADMIN_PASSWORD = env_var('ADMIN_PASSWORD', '')
+
 
 class DevelopmentConfig(Config):
     """Configurations for Development."""

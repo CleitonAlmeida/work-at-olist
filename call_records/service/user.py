@@ -11,7 +11,8 @@ def save_new_user(data):
     if not user:
         new_user = User(
             username = data['username'],
-            password_hash = data['password']
+            password_hash = data['password'],
+            is_admin = data.get('is_admin', False)
         )
         new_user.gen_hash(data['password'])
         save_changes(new_user)
@@ -31,6 +32,10 @@ def get_a_user(username):
     from call_records.model.user import User
     return User.query.filter_by(username=username).first()
 
+def get_a_user_or_admin(username):
+    from call_records.model.user import User
+    return User.query.filter((User.username==username) | (User.is_admin==True)).first()
+
 def get_all_users():
     from call_records.model.user import User
     return User.query.all()
@@ -44,7 +49,6 @@ def login_user(data):
     )
 
     try:
-        #current_app.logger.warning('Username %s', data.get('username'))
         user = User.query.filter_by(username=data.get('username')).first()
         if user and user.verify_password(password=data.get('password')):
             access_token = create_access_token(identity=data.get('username'))
