@@ -213,6 +213,69 @@ class TestApi(unittest.TestCase):
             self.assertEqual(rv.status_code, 404)
             self.assertEqual(rv.mimetype, 'application/json')
 
+    def test_3_refresh_token_admin(self):
+        """ Tests that API get a refresh token (admin). """
+        with self.app.app_context():
+            old_token = self.admin_access_token
+            rv = self.client.post('/api/user/refresh', headers={
+                "Authorization": "Bearer "+self.admin_access_token
+            })
+            data = json.loads(rv.data)
+            self.logger.info('data %s', data)
+            self.assertEqual(rv.status_code, 200)
+            self.assertEqual(rv.mimetype, 'application/json')
+
+            self.assertEqual(data['status'], 'success')
+            self.admin_access_token = data['access_token']
+
+            #Another request with the new token
+            rv = self.client.get('/api/user/', headers={
+                "Authorization": "Bearer "+self.admin_access_token
+            })
+            self.assertEqual(rv.status_code, 200)
+            self.assertEqual(rv.mimetype, 'application/json')
+
+            #Another request with old token (invalid)
+            rv = self.client.get('/api/user/', headers={
+                "Authorization": "Bearer "+old_token
+            })
+            self.assertEqual(rv.status_code, 401)
+            self.assertEqual(rv.mimetype, 'application/json')
+            data = json.loads(rv.data)
+            self.assertEqual(data['status'], 'fail')
+            self.assertEqual(data['message'], 'Token has been revoked')
+
+    def test_3_refresh_token(self):
+        """ Tests that API get a refresh token (admin). """
+        with self.app.app_context():
+            old_token = self.normal_access_token
+            rv = self.client.post('/api/user/refresh', headers={
+                "Authorization": "Bearer "+self.normal_access_token
+            })
+            data = json.loads(rv.data)
+            self.logger.info('data %s', data)
+            self.assertEqual(rv.status_code, 200)
+            self.assertEqual(rv.mimetype, 'application/json')
+
+            self.assertEqual(data['status'], 'success')
+            self.normal_access_token = data['access_token']
+
+            #Another request with the new token
+            rv = self.client.post('/api/user/refresh', headers={
+                "Authorization": "Bearer "+self.normal_access_token
+            })
+            self.assertEqual(rv.status_code, 200)
+            self.assertEqual(rv.mimetype, 'application/json')
+
+            #Another request with old token (invalid)
+            rv = self.client.post('/api/user/refresh', headers={
+                "Authorization": "Bearer "+old_token
+            })
+            self.assertEqual(rv.status_code, 401)
+            self.assertEqual(rv.mimetype, 'application/json')
+            data = json.loads(rv.data)
+            self.assertEqual(data['status'], 'fail')
+            self.assertEqual(data['message'], 'Token has been revoked')
 
 if __name__ == '__main__':
     unittest.main()
