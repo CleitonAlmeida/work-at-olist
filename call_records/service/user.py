@@ -71,3 +71,32 @@ def login_user(data):
             'message': 'Try again'
         }
         return response_object, 500
+
+def get_refresh_token():
+    from flask_jwt_extended import get_jwt_identity, create_access_token
+    from flask import current_app
+    from call_records.model.user import User
+
+    try:
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(username=current_user).first()
+        current_app.logger.warning('current user %s', current_user)
+        if user:
+            response_object = {
+                'status': 'success',
+                'access_token': create_access_token(identity=user)
+            }
+            return response_object, 200
+        else:
+            response_object = {
+                'status': 'fail',
+                'message': 'User does not match.'
+            }
+            return response_object, 401
+    except Exception as e:
+        current_app.logger.warning('ERROR Login %s', e)
+        response_object = {
+            'status': 'fail',
+            'message': 'Try again'
+        }
+        return response_object, 500

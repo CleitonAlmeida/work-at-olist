@@ -2,9 +2,10 @@ from flask import current_app
 from flask_restplus import Resource
 
 from call_records.dto.user import UserDto
-from call_records.service.user import save_new_user, get_a_user, get_all_users, login_user
+from call_records.service.user import save_new_user, get_a_user, get_all_users, login_user, get_refresh_token
 from call_records.controller import user_required, admin_required
 from flask_restplus import reqparse
+from flask_jwt_extended import jwt_refresh_token_required
 
 ns = UserDto.ns
 userDtoModel = UserDto.user
@@ -72,3 +73,11 @@ class UserLogin(Resource):
         data = parser.parse_args()
 
         return login_user(data=data)
+
+@ns.route('/refresh')
+class UserLoginRefresh(Resource):
+    @user_required
+    #@jwt_refresh_token_required
+    def post(self):
+        """To get a refresh token"""
+        return get_refresh_token()
