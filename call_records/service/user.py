@@ -76,7 +76,7 @@ def update_user(data):
             'status': 'fail',
             'message': 'You must be admin'
         }
-        return response_object, 401
+        return response_object, 403
 
 def check_first_admin_user():
     """

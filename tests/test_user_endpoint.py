@@ -104,7 +104,7 @@ class TestApi(unittest.TestCase):
             rv = self.client.get('/api/user/', headers={
                 "Authorization": "Bearer "+self.normal_access_token
             })
-            self.assertEqual(rv.status_code, 401)
+            self.assertEqual(rv.status_code, 403)
             self.assertEqual(rv.mimetype, 'application/json')
             data = json.loads(rv.data)
             self.assertEqual(data['status'], 'fail')
@@ -138,7 +138,7 @@ class TestApi(unittest.TestCase):
                 "Authorization": "Bearer "+self.normal_access_token
             })
             #self.app.logger.info('test_1_post_user %s',rv.data)
-            self.assertEqual(rv.status_code, 401)
+            self.assertEqual(rv.status_code, 403)
             self.assertEqual(rv.mimetype, 'application/json')
 
             data = json.loads(rv.data)
@@ -212,7 +212,7 @@ class TestApi(unittest.TestCase):
 
             data = json.loads(rv.data)
             #self.logger.info('data %s', data)
-            self.assertEqual(rv.status_code, 401)
+            self.assertEqual(rv.status_code, 403)
             self.assertEqual(rv.mimetype, 'application/json')
             self.assertEqual(data['status'], 'fail')
             self.assertEqual(data['message'], 'You must be admin')
@@ -465,7 +465,7 @@ class TestApi(unittest.TestCase):
             }, json={
                 "password": new_pass
             })
-            self.assertEqual(rv.status_code, 401)
+            self.assertEqual(rv.status_code, 403)
             self.assertEqual(rv.mimetype, 'application/json')
             data = json.loads(rv.data)
             self.assertEqual(data['status'], 'fail')

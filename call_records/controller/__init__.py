@@ -35,5 +35,5 @@ def admin_required(fn):
                 'status': 'fail',
                 'message': 'You must be admin'
             }
-            return response_object, 401
+            return response_object, 403
     return wrapper
