@@ -9,11 +9,22 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     username = db.Column(db.String(32), index = True, unique=True)
     password_hash = db.Column(db.String(128))
-    is_admin = db.Column(db.Boolean(), nullable=False, default=False)
+    _is_admin = db.Column('is_admin', db.Boolean(), nullable=False, default=False)
     date_created = db.Column(db.DateTime(timezone=True), default=db.func.current_timestamp())
     date_modified = db.Column(
         db.DateTime(timezone=True), default=db.func.current_timestamp(),
         onupdate=db.func.current_timestamp())
+
+    @property
+    def is_admin(self):
+        return self._is_admin
+
+    @is_admin.setter
+    def is_admin(self, is_admin):
+        if is_admin is not None:
+            self._is_admin = bool(is_admin)
+        else:
+            self._is_admin = self._is_admin
 
     def gen_hash(self, password):
         self.password_hash = pbkdf2_sha256.hash(password)
