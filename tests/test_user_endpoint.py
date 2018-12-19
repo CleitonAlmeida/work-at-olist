@@ -19,6 +19,13 @@ class TestApi(unittest.TestCase):
     admin_access_token = None
     normal_access_token = None
 
+    def login_request(self, username, password):
+        with self.app.app_context():
+            return self.client.post('/api/user/login', data=dict(
+                username=username,
+                password=password
+            ))
+
     @classmethod
     def setUpClass(cls):
         cls.app = create_app(config_name="testing")
@@ -39,18 +46,20 @@ class TestApi(unittest.TestCase):
 
         #Get tokens
         cls.client = cls.app.test_client()
-        rv = cls.client.post('/api/user/login', data=dict(
+        rv = cls.login_request(cls, cls.username_a, cls.password_a)
+        """rv = cls.client.post('/api/user/login', data=dict(
             username=cls.username_a,
             password=cls.password_a
-        ))
+        ))"""
         data = json.loads(rv.data)
         cls.admin_access_token = data['access_token']
 
         cls.client = cls.app.test_client()
-        rv = cls.client.post('/api/user/login', data=dict(
+        rv = cls.login_request(cls, cls.username, cls.password)
+        """rv = cls.client.post('/api/user/login', data=dict(
             username=cls.username,
             password=cls.password
-        ))
+        ))"""
         data = json.loads(rv.data)
         cls.normal_access_token = data['access_token']
 
@@ -58,6 +67,9 @@ class TestApi(unittest.TestCase):
     def tearDownClass(cls):
         cls.app.app_context().push()
         user = db.session.query(User).filter_by(username='test_1').first();
+        if user:
+            user.delete()
+        user = db.session.query(User).filter_by(username='test_2').first();
         if user:
             user.delete()
         db.session.query(User).filter_by(username=cls.username).first().delete()
@@ -141,7 +153,7 @@ class TestApi(unittest.TestCase):
             ), headers={
                 "Authorization": "Bearer "+self.admin_access_token
             })
-            self.app.logger.info('test_1_post_user_empty_fields %s',rv.data)
+            #self.app.logger.info('test_1_post_user_empty_fields %s',rv.data)
             self.assertEqual(rv.status_code, 400)
             self.assertEqual(rv.mimetype, 'application/json')
 
@@ -157,7 +169,7 @@ class TestApi(unittest.TestCase):
             ), headers={
                 "Authorization": "Bearer "+self.admin_access_token
             })
-            self.app.logger.info('test_1_post_user_already_exists %s',rv.data)
+            #self.app.logger.info('test_1_post_user_already_exists %s',rv.data)
             self.assertEqual(rv.status_code, 409)
             self.assertEqual(rv.mimetype, 'application/json')
 
@@ -173,7 +185,7 @@ class TestApi(unittest.TestCase):
             })
 
             data = json.loads(rv.data)
-            self.logger.info('data %s', data)
+            #self.logger.info('data %s', data)
             self.assertEqual(rv.status_code, 200)
             self.assertEqual(rv.mimetype, 'application/json')
             self.assertEqual(data['username'], self.username_a)
@@ -186,7 +198,7 @@ class TestApi(unittest.TestCase):
             })
 
             data = json.loads(rv.data)
-            self.logger.info('data %s', data)
+            #self.logger.info('data %s', data)
             self.assertEqual(rv.status_code, 200)
             self.assertEqual(rv.mimetype, 'application/json')
             self.assertEqual(data['username'], self.username)
@@ -199,7 +211,7 @@ class TestApi(unittest.TestCase):
             })
 
             data = json.loads(rv.data)
-            self.logger.info('data %s', data)
+            #self.logger.info('data %s', data)
             self.assertEqual(rv.status_code, 401)
             self.assertEqual(rv.mimetype, 'application/json')
             self.assertEqual(data['status'], 'fail')
@@ -207,12 +219,12 @@ class TestApi(unittest.TestCase):
 
     def test_2_get_wrong_user(self):
         with self.app.app_context():
-            self.logger.info('address /api/user/blablabla')
+            #self.logger.info('address /api/user/blablabla')
             rv = self.client.get('/api/user/blablabla', headers={
                 "Authorization": "Bearer "+self.admin_access_token
             })
             data = json.loads(rv.data)
-            self.logger.info('data %s', data)
+            #self.logger.info('data %s', data)
             self.assertEqual(rv.status_code, 404)
             self.assertEqual(rv.mimetype, 'application/json')
 
@@ -224,7 +236,7 @@ class TestApi(unittest.TestCase):
                 "Authorization": "Bearer "+self.admin_access_token
             })
             data = json.loads(rv.data)
-            self.logger.info('data %s', data)
+            #self.logger.info('data %s', data)
             self.assertEqual(rv.status_code, 200)
             self.assertEqual(rv.mimetype, 'application/json')
 
@@ -291,10 +303,187 @@ class TestApi(unittest.TestCase):
             self.assertEqual(data['status'], 'fail')
             self.assertEqual(data['message'], 'Token has been revoked')
 
-    def test_4_logout(self):
+    def test_4_update_user_admin(self):
+        """Tests update password user (admin - sucessfully)"""
+        with self.app.app_context():
+            user = db.session.query(User).filter_by(username=self.username_a).first()
+            new_pass = user.generate_password(length=10)
+
+            rv = self.client.post('/api/user/'+self.username_a, headers={
+                "Authorization": "Bearer "+self.admin_access_token
+            }, json={
+                "password": new_pass
+            })
+            self.assertEqual(rv.status_code, 200)
+            self.assertEqual(rv.mimetype, 'application/json')
+            data = json.loads(rv.data)
+            self.assertEqual(data['status'], 'success')
+            self.assertEqual(data['message'], 'Successfully updated')
+            user = db.session.query(User).filter_by(username=self.username_a).first()
+            result = user.verify_password(password=new_pass)
+            print(result)
+            self.assertTrue(result)
+            self.__class__.password_a = new_pass
+
+            #Another request with the new password
+            rv = self.login_request(self.username_a, self.password_a)
+            data = json.loads(rv.data)
+            self.assertEqual(rv.status_code, 200)
+            self.assertEqual(data['status'], 'success')
+
+    def test_4_admin_user_cannot_update_role_admin(self):
+        """
+        Tests update role (admin or normal user) user
+        Admin user can't update your own role (is_admin field)
+        """
+        with self.app.app_context():
+            #New request to update access_token
+            rv = self.login_request(self.username_a, self.password_a)
+            data = json.loads(rv.data)
+            self.__class__.admin_access_token = data['access_token']
+
+            user = db.session.query(User).filter_by(username=self.username_a).first()
+            new_pass = user.generate_password(length=10)
+            #Request to update your own user
+            rv = self.client.post('/api/user/'+self.username_a, headers={
+                "Authorization": "Bearer "+self.admin_access_token
+            }, json={
+                "password": new_pass,
+                "is_admin": False
+            })
+            self.assertEqual(rv.status_code, 200)
+            self.assertEqual(rv.mimetype, 'application/json')
+            data = json.loads(rv.data)
+            self.assertEqual(data['status'], 'success')
+            self.assertEqual(data['message'], 'Successfully updated')
+            user = db.session.query(User).filter_by(username=self.username_a).first()
+            result = user.verify_password(password=new_pass)
+            self.assertTrue(result)
+            self.assertTrue(user.is_admin)
+            self.__class__.password_a = new_pass
+
+    def test_4_admin_user_update_other_user(self):
+        """Test admin user make updates on normal user registry"""
+        with self.app.app_context():
+            #New request to update access_token
+            rv = self.login_request(self.username_a, self.password_a)
+            data = json.loads(rv.data)
+            self.__class__.admin_access_token = data['access_token']
+
+            #Normal user
+            user = db.session.query(User).filter_by(username=self.username).first()
+            self.assertFalse(user.is_admin)
+            new_pass = user.generate_password(length=10)
+            #Change password and the role
+            rv = self.client.post('/api/user/'+self.username, headers={
+                "Authorization": "Bearer "+self.admin_access_token
+            }, json={
+                "password": new_pass,
+                "is_admin": True
+            })
+            self.assertEqual(rv.status_code, 200)
+            self.assertEqual(rv.mimetype, 'application/json')
+            data = json.loads(rv.data)
+            self.assertEqual(data['status'], 'success')
+            self.assertEqual(data['message'], 'Successfully updated')
+            user = db.session.query(User).filter_by(username=self.username).first()
+            result = user.verify_password(password=new_pass)
+            self.assertTrue(result)
+            self.assertTrue(user.is_admin)
+            self.__class__.password = new_pass
+
+            #Update normal user, field is_admin to False, to dont mess others test
+            user.is_admin = False
+            user.save()
+
+    def test_4_update_user_normal(self):
+        """Tests update password user (normal - sucessfully)"""
+        with self.app.app_context():
+            user = db.session.query(User).filter_by(username=self.username).first()
+            self.assertFalse(user.is_admin)
+            new_pass = user.generate_password(length=10)
+
+            rv = self.client.post('/api/user/'+self.username, headers={
+                "Authorization": "Bearer "+self.normal_access_token
+            }, json={
+                "password": new_pass,
+                "is_admin": True
+            })
+            self.assertEqual(rv.status_code, 200)
+            self.assertEqual(rv.mimetype, 'application/json')
+            data = json.loads(rv.data)
+            self.assertEqual(data['status'], 'success')
+            self.assertEqual(data['message'], 'Successfully updated')
+            user = db.session.query(User).filter_by(username=self.username).first()
+            result = user.verify_password(password=new_pass)
+            self.assertTrue(result)
+            """
+            Despite the attempt, normal user can't change their own role
+            """
+            self.assertFalse(user.is_admin)
+            self.__class__.password = new_pass
+
+            #Another request with the new password
+            rv = self.login_request(self.username, self.password)
+            """rv = self.client.post('/api/user/login', data=dict(
+                username=self.username,
+                password=self.password
+            ))"""
+            data = json.loads(rv.data)
+            self.assertEqual(rv.status_code, 200)
+            self.assertEqual(data['status'], 'success')
+
+    def test_4_normal_user_cannot_update_other_user(self):
+        """Test normal user cannot updates others users registry"""
+        with self.app.app_context():
+            #New request to update access_token admin
+            rv = self.login_request(self.username_a, self.password_a)
+            data = json.loads(rv.data)
+            self.__class__.admin_access_token = data['access_token']
+
+            #Creating another user by admin
+            rv = self.client.post('/api/user/', data=dict(
+                username='test_2',
+                password=self.password
+            ), headers={
+                "Authorization": "Bearer "+self.admin_access_token
+            })
+            self.assertEqual(rv.status_code, 201)
+            self.assertEqual(rv.mimetype, 'application/json')
+
+            #New request to update access_token
+            rv = self.login_request(self.username, self.password)
+            data = json.loads(rv.data)
+            self.__class__.normal_access_token = data['access_token']
+
+            #Normal user try to change the test_2 (created before)
+            user = db.session.query(User).filter_by(username='test_2').first()
+            self.assertFalse(user.is_admin)
+            new_pass = user.generate_password(length=10)
+            rv = self.client.post('/api/user/test_2', headers={
+                "Authorization": "Bearer "+self.normal_access_token
+            }, json={
+                "password": new_pass
+            })
+            self.assertEqual(rv.status_code, 401)
+            self.assertEqual(rv.mimetype, 'application/json')
+            data = json.loads(rv.data)
+            self.assertEqual(data['status'], 'fail')
+            self.assertEqual(data['message'], 'You must be admin')
+            user = db.session.query(User).filter_by(username=self.username).first()
+            result = user.verify_password(password=new_pass)
+            self.assertFalse(result)
+            self.assertFalse(user.is_admin)
+
+    def test_5_logout(self):
         """ Tests logout. """
         with self.app.app_context():
-            #old_token = self.normal_access_token
+            #New request to update access_token
+            rv = self.login_request(self.username, self.password)
+            data = json.loads(rv.data)
+            self.__class__.normal_access_token = data['access_token']
+
+            #Request to logout
             rv = self.client.post('/api/user/logout', headers={
                 "Authorization": "Bearer "+self.normal_access_token
             })
