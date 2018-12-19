@@ -2,10 +2,11 @@ from flask import current_app
 from flask_restplus import Resource
 
 from call_records.dto.user import UserDto
-from call_records.service.user import save_new_user, get_a_user, get_all_users, login_user, get_refresh_token, logout_user
+from call_records.service.user import (save_user, get_a_user, get_all_users,
+    login_user, get_refresh_token, logout_user, update_user)
 from call_records.controller import user_required, admin_required
-from flask_restplus import reqparse
-from flask_jwt_extended import jwt_refresh_token_required
+from flask_restplus import reqparse, inputs
+from flask_jwt_extended import jwt_refresh_token_required, get_raw_jwt
 
 ns = UserDto.ns
 userDtoModel = UserDto.user
@@ -14,6 +15,12 @@ userLogInDtoModel = UserDto.userLogIn
 def get_parser_user():
     parser = reqparse.RequestParser()
     parser.add_argument('username', type=str, required=True)
+    parser.add_argument('password', type=str, required=True)
+    return parser
+
+def get_parser_update_user():
+    parser = reqparse.RequestParser()
+    parser.add_argument('is_admin', type=inputs.boolean, required=False)
     parser.add_argument('password', type=str, required=True)
     return parser
 
@@ -37,7 +44,7 @@ class User(Resource):
         parser = get_parser_user()
         data = parser.parse_args()
 
-        return save_new_user(data=data)
+        return save_user(data=data)
 
 
 @ns.route('/<username>')
@@ -57,6 +64,30 @@ class UserSpecific(Resource):
             ns.abort(404, 'User not found.')
         else:
             return user
+
+    @user_required
+    @ns.expect(get_parser_update_user(), validate=True)
+    @ns.marshal_with(userLogInDtoModel, skip_none=True)
+    @ns.doc(responses={
+        200: 'Successfully updated',
+        404: 'User not found'
+    })
+    def post(self, username):
+        """To update an user"""
+        try:
+            current_app.logger.info('post user')
+            parser = get_parser_update_user()
+            current_app.logger.info('after parser')
+            data = parser.parse_args()
+            data['username'] = username
+            return update_user(data=data)
+        except Exception as e:
+            current_app.logger.warning('ERROR Login %s', e)
+            response_object = {
+                'status': 'fail',
+                'message': 'Try again'
+            }
+            return response_object, 500
 
 @ns.route('/login')
 class UserLogin(Resource):

@@ -3,30 +3,81 @@ def save_changes(data):
     db.session.add(data)
     db.session.commit()
 
-def save_new_user(data):
+def save_user(data, is_new=True):
     from call_records.model.user import User
+    from call_records.service.tokenblacklist import revoke_token_user
     from flask import current_app
 
-    user = User.query.filter_by(username=data['username']).first()
-    if not user:
-        new_user = User(
-            username = data['username'],
-            password_hash = data['password'],
-            is_admin = data.get('is_admin', False)
-        )
-        new_user.gen_hash(data['password'])
-        save_changes(new_user)
+    try:
+        user = User.query.filter_by(username=data['username']).first()
+        #New user
+        if not user and is_new:
+            new_user = User(
+                username = data['username'],
+                password_hash = data['password'],
+                is_admin = data.get('is_admin', False)
+            )
+            new_user.gen_hash(data['password'])
+            save_changes(new_user)
+            response_object = {
+                'status': 'success',
+                'message': 'Successfully registered'
+            }
+            return response_object, 201
+        #Existing User
+        elif user and not is_new:
+            user.gen_hash(data['password'])
+            user.is_admin = data.get('is_admin')
+            current_app.logger.warning('is_admin %s', user.is_admin)
+            user.save()
+            """
+            When a password update occurs, we need to revoke the tokens
+            to force a new login
+            """
+            revoke_token_user(user.username)
+            response_object = {
+                'status': 'success',
+                'message': 'Successfully updated'
+            }
+            return response_object, 200
+        else:
+            response_object = {
+                'status': 'fail',
+                'message': 'User already exists. Please Log in',
+            }
+            return response_object, 409
+    except Exception as e:
+        current_app.logger.warning('ERROR Save User %s', e)
         response_object = {
-            'status': 'success',
-            'message': 'Successfully registered'
+            'status': 'fail',
+            'message': e
         }
-        return response_object, 201
+        return response_object, 500
+
+def update_user(data):
+    from flask_jwt_extended import get_raw_jwt
+    from flask import current_app
+
+    claims = get_raw_jwt()
+    user_claims = claims.get('user_claims')
+
+    # Admin access
+    if user_claims.get('is_admin'):
+        #Admin user can't revoke your own role
+        if data.get('username') == claims.get('identity'):
+            data.pop('is_admin', None)
+        return save_user(data=data, is_new=False)
+    # The Own User access
+    elif data.get('username') == claims.get('identity'):
+        #Normal users cant update your own role
+        data.pop('is_admin', None)
+        return save_user(data=data, is_new=False)
     else:
         response_object = {
             'status': 'fail',
-            'message': 'User already exists. Please Log in',
+            'message': 'You must be admin'
         }
-        return response_object, 409
+        return response_object, 401
 
 def get_a_user(username):
     from call_records.model.user import User

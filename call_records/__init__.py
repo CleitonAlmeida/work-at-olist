@@ -88,11 +88,11 @@ def configure_user_admin(app):
 
     if username and password:
         app.app_context().push()
-        from call_records.service.user import get_a_user_or_admin, save_new_user
+        from call_records.service.user import get_a_user_or_admin, save_user
         user_admin = get_a_user_or_admin(username)
         if not user_admin:
             data = {'username': username, 'password': password, 'is_admin': 1}
-            save_new_user(data)
+            save_user(data)
 
 
 def create_app(config_name):
