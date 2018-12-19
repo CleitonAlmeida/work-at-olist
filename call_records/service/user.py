@@ -28,7 +28,6 @@ def save_user(data, is_new=True):
         elif user and not is_new:
             user.gen_hash(data['password'])
             user.is_admin = data.get('is_admin')
-            current_app.logger.warning('is_admin %s', user.is_admin)
             user.save()
             """
             When a password update occurs, we need to revoke the tokens
@@ -47,7 +46,7 @@ def save_user(data, is_new=True):
             }
             return response_object, 409
     except Exception as e:
-        current_app.logger.warning('ERROR Save User %s', e)
+        current_app.logger.error('save_user %s', e)
         response_object = {
             'status': 'fail',
             'message': e
@@ -137,7 +136,7 @@ def login_user(data):
             }
             return response_object, 401
     except Exception as e:
-        current_app.logger.warning('ERROR Login %s', e)
+        current_app.logger.error('login_user %s', e)
         response_object = {
             'status': 'fail',
             'message': 'Try again'
@@ -171,7 +170,7 @@ def get_refresh_token():
             }
             return response_object, 401
     except Exception as e:
-        current_app.logger.warning('ERROR Login %s', e)
+        current_app.logger.error('get_refresh_token %s', e)
         response_object = {
             'status': 'fail',
             'message': 'Try again'
@@ -192,7 +191,7 @@ def logout_user():
         }
         return response_object, 200
     except Exception as e:
-        current_app.logger.warning('ERROR Login %s', e)
+        current_app.logger.error('logout_user %s', e)
         response_object = {
             'status': 'fail',
             'message': 'Try again'

@@ -77,14 +77,12 @@ class UserSpecific(Resource):
     def post(self, username):
         """To update an user"""
         try:
-            current_app.logger.info('post user')
             parser = get_parser_update_user()
-            current_app.logger.info('after parser')
             data = parser.parse_args()
             data['username'] = username
             return update_user(data=data)
         except Exception as e:
-            current_app.logger.warning('ERROR Login %s', e)
+            current_app.logger.error('user/<username> %s', e)
             response_object = {
                 'status': 'fail',
                 'message': 'Try again'
