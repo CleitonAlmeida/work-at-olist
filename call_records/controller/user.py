@@ -11,6 +11,8 @@ from flask_jwt_extended import jwt_refresh_token_required, get_raw_jwt
 ns = UserDto.ns
 userDtoModel = UserDto.user
 userLogInDtoModel = UserDto.userLogIn
+userRefreshDtoModel = UserDto.userRefresh
+userResponsesDtoModel = UserDto.userResponses
 
 def get_parser_user():
     parser = reqparse.RequestParser()
@@ -20,7 +22,7 @@ def get_parser_user():
 
 def get_parser_update_user():
     parser = reqparse.RequestParser()
-    parser.add_argument('is_admin', type=inputs.boolean, required=False)
+    parser.add_argument('is_admin', type=inputs.boolean, required=False, help='The role of user (if admin or not admin)')
     parser.add_argument('password', type=str, required=True)
     return parser
 
@@ -67,7 +69,7 @@ class UserSpecific(Resource):
 
     @user_required
     @ns.expect(get_parser_update_user(), validate=True)
-    @ns.marshal_with(userLogInDtoModel, skip_none=True)
+    @ns.marshal_with(userResponsesDtoModel, skip_none=True)
     @ns.doc(responses={
         200: 'Successfully updated',
         404: 'User not found'
@@ -108,7 +110,7 @@ class UserLogin(Resource):
 @ns.route('/refresh')
 class UserLoginRefresh(Resource):
     @user_required
-    @ns.marshal_with(userLogInDtoModel, skip_none=True)
+    @ns.marshal_with(userRefreshDtoModel, skip_none=True)
     #@jwt_refresh_token_required
     def post(self):
         """To get a refresh token"""
@@ -117,6 +119,7 @@ class UserLoginRefresh(Resource):
 @ns.route('/logout')
 class UserLogout(Resource):
     @user_required
+    @ns.marshal_with(userResponsesDtoModel, skip_none=True)
     @ns.doc(responses={
         200: 'Logout Successfully'
     })
