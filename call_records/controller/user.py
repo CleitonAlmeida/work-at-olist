@@ -82,7 +82,7 @@ class UserSpecific(Resource):
         200: 'Successfully updated',
         404: 'User not found'
     })
-    def post(self, username):
+    def put(self, username):
         """To update an user"""
         try:
             parser = get_parser_update_user()

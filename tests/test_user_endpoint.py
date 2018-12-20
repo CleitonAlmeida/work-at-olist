@@ -309,7 +309,7 @@ class TestApi(unittest.TestCase):
             user = db.session.query(User).filter_by(username=self.username_a).first()
             new_pass = user.generate_password(length=10)
 
-            rv = self.client.post('/api/user/'+self.username_a, headers={
+            rv = self.client.put('/api/user/'+self.username_a, headers={
                 "Authorization": "Bearer "+self.admin_access_token
             }, json={
                 "password": new_pass
@@ -345,7 +345,7 @@ class TestApi(unittest.TestCase):
             user = db.session.query(User).filter_by(username=self.username_a).first()
             new_pass = user.generate_password(length=10)
             #Request to update your own user
-            rv = self.client.post('/api/user/'+self.username_a, headers={
+            rv = self.client.put('/api/user/'+self.username_a, headers={
                 "Authorization": "Bearer "+self.admin_access_token
             }, json={
                 "password": new_pass,
@@ -375,7 +375,7 @@ class TestApi(unittest.TestCase):
             self.assertFalse(user.is_admin)
             new_pass = user.generate_password(length=10)
             #Change password and the role
-            rv = self.client.post('/api/user/'+self.username, headers={
+            rv = self.client.put('/api/user/'+self.username, headers={
                 "Authorization": "Bearer "+self.admin_access_token
             }, json={
                 "password": new_pass,
@@ -403,7 +403,7 @@ class TestApi(unittest.TestCase):
             self.assertFalse(user.is_admin)
             new_pass = user.generate_password(length=10)
 
-            rv = self.client.post('/api/user/'+self.username, headers={
+            rv = self.client.put('/api/user/'+self.username, headers={
                 "Authorization": "Bearer "+self.normal_access_token
             }, json={
                 "password": new_pass,
@@ -460,7 +460,7 @@ class TestApi(unittest.TestCase):
             user = db.session.query(User).filter_by(username='test_2').first()
             self.assertFalse(user.is_admin)
             new_pass = user.generate_password(length=10)
-            rv = self.client.post('/api/user/test_2', headers={
+            rv = self.client.put('/api/user/test_2', headers={
                 "Authorization": "Bearer "+self.normal_access_token
             }, json={
                 "password": new_pass
