@@ -52,6 +52,8 @@ class Config(object):
     ADMIN_USERNAME = env_var('ADMIN_USERNAME', '')
     ADMIN_PASSWORD = env_var('ADMIN_PASSWORD', '')
 
+    PAGINATION_LIMIT = int(env_var('PAGINATION_LIMIT', 20))
+
 
 class DevelopmentConfig(Config):
     """Configurations for Development."""

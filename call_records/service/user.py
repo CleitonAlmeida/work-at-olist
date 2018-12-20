@@ -101,13 +101,15 @@ def get_a_user(username):
     from call_records.model.user import User
     return User.query.filter_by(username=username).first()
 
-def get_a_user_or_admin(username):
+def get_all_users(paginated=False, start=None, limit=None):
     from call_records.model.user import User
-    return User.query.filter((User.username==username) | (User.is_admin==True)).first()
+    from call_records.service.util import paginated_list
+    from flask import request
 
-def get_all_users():
-    from call_records.model.user import User
-    return User.query.all()
+    if paginated:
+        return paginated_list(User, request.base_url, start=start, limit=limit)
+    else:
+        return User.query.all()
 
 def login_user(data):
     from call_records.model.user import User

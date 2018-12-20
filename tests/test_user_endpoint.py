@@ -90,7 +90,7 @@ class TestApi(unittest.TestCase):
 
             data = json.loads(rv.data)
             count = 0
-            for user in data['data']:
+            for user in data['data']['results']:
                 #self.app.logger.info('FOR test_0_get_list_user %s', user.get('username'))
                 if user.get('username') == 'teste' or user.get('username') == 'teste_admin':
                     count+=1

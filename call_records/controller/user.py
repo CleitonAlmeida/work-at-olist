@@ -10,6 +10,7 @@ from flask_jwt_extended import jwt_refresh_token_required, get_raw_jwt
 
 ns = UserDto.ns
 userDtoModel = UserDto.user
+userListDtoModel = UserDto.userList
 userLogInDtoModel = UserDto.userLogIn
 userRefreshDtoModel = UserDto.userRefresh
 userResponsesDtoModel = UserDto.userResponses
@@ -26,14 +27,22 @@ def get_parser_update_user():
     parser.add_argument('password', type=str, required=True)
     return parser
 
+def get_parser_pagination():
+    parser = reqparse.RequestParser()
+    parser.add_argument('start', type=int, required=False, default=1)
+    parser.add_argument('limit', type=int, required=False)
+    return parser
+
 @ns.route('/')
 class User(Resource):
     @admin_required
-    @ns.marshal_list_with(userDtoModel, envelope='data', skip_none=True)
-    def get(self):
-        #current_app.logger.info('Pass in user list get')
+    @ns.expect(get_parser_pagination(), validate=True)
+    @ns.marshal_list_with(userListDtoModel, envelope='data', skip_none=True)
+    def get(self, page=None):
         """List all registered users"""
-        return get_all_users()
+        parser = get_parser_pagination()
+        data = parser.parse_args()
+        return get_all_users(paginated=True, start=data.get('start'), limit=data.get('limit'))
 
     @admin_required
     @ns.expect(get_parser_user(), validate=True)
@@ -45,7 +54,6 @@ class User(Resource):
         """Create a new user"""
         parser = get_parser_user()
         data = parser.parse_args()
-
         return save_user(data=data)
 
 

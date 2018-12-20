@@ -9,6 +9,13 @@ class UserDto:
         'date_modified': fields.DateTime(description='Datetime of user modification'),
         'is_admin': fields.Boolean(description='Role of user (if is admin or not admin)')
     })
+    userList = ns.model('userList', {
+        'start': fields.Integer(required=True, description='It is the position from which we want the data to be returned'),
+        'limit': fields.Integer(required=True, description='It is the max number of items to return from that position'),
+        'next': fields.String(required=False, description='It is the url for the next page of the query assuming current value of limit'),
+        'previous': fields.String(required=False, description='It is the url for the previous page of the query assuming current value of limit'),
+        'results': fields.List(fields.Nested(user, skip_none=True))
+    })
     userLogIn = ns.model('userLogIn', {
         'status': fields.String(required=True, enum=('success', 'fail'), description='Status of login operation'),
         'message': fields.String(required=True, description='An message description', example='Successfully logged in'),
