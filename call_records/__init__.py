@@ -10,8 +10,9 @@ from .config import app_config
 from flask.logging import default_handler
 from flask_jwt_extended import JWTManager
 
-from call_records.controller.user import User as UserController
+from call_records.controller import user, auth
 from call_records.dto.user import UserDto
+from call_records.dto.auth import AuthDto
 
 db = SQLAlchemy()
 
@@ -52,7 +53,9 @@ def configure_namespace(app):
               doc='/api',
               authorizations=authorizations,
               security='Bearer Auth')
+
     api.add_namespace(UserDto.ns, path='/api/user')
+    api.add_namespace(AuthDto.ns, path='/api')
 
 def configure_jwt(app):
     app.config['JWT_SECRET_KEY'] = 'AUIRgoasdgfuyAUYFaisuebf'  # Change this!

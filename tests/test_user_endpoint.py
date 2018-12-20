@@ -21,7 +21,7 @@ class TestApi(unittest.TestCase):
 
     def login_request(self, username, password):
         with self.app.app_context():
-            return self.client.post('/api/user/login', data=dict(
+            return self.client.post('/api/login', data=dict(
                 username=username,
                 password=password
             ))
@@ -47,19 +47,13 @@ class TestApi(unittest.TestCase):
         #Get tokens
         cls.client = cls.app.test_client()
         rv = cls.login_request(cls, cls.username_a, cls.password_a)
-        """rv = cls.client.post('/api/user/login', data=dict(
-            username=cls.username_a,
-            password=cls.password_a
-        ))"""
+
         data = json.loads(rv.data)
         cls.admin_access_token = data['access_token']
 
         cls.client = cls.app.test_client()
         rv = cls.login_request(cls, cls.username, cls.password)
-        """rv = cls.client.post('/api/user/login', data=dict(
-            username=cls.username,
-            password=cls.password
-        ))"""
+
         data = json.loads(rv.data)
         cls.normal_access_token = data['access_token']
 
@@ -232,7 +226,7 @@ class TestApi(unittest.TestCase):
         """ Tests that API get a refresh token (admin). """
         with self.app.app_context():
             old_token = self.admin_access_token
-            rv = self.client.post('/api/user/refresh', headers={
+            rv = self.client.post('/api/refresh', headers={
                 "Authorization": "Bearer "+self.admin_access_token
             })
             data = json.loads(rv.data)
@@ -265,7 +259,7 @@ class TestApi(unittest.TestCase):
         """ Tests that API get a refresh token. """
         with self.app.app_context():
             old_token = self.normal_access_token
-            rv = self.client.post('/api/user/refresh', headers={
+            rv = self.client.post('/api/refresh', headers={
                 "Authorization": "Bearer "+self.normal_access_token
             })
             data = json.loads(rv.data)
@@ -283,7 +277,7 @@ class TestApi(unittest.TestCase):
             self.__class__.normal_access_token = data['access_token']
 
             #Another request with the new token
-            rv = self.client.post('/api/user/refresh', headers={
+            rv = self.client.post('/api/refresh', headers={
                 "Authorization": "Bearer "+self.normal_access_token
             })
             data = json.loads(rv.data)
@@ -294,7 +288,7 @@ class TestApi(unittest.TestCase):
             self.__class__.normal_access_token = data['access_token']
 
             #Another request with old token (invalid)
-            rv = self.client.post('/api/user/refresh', headers={
+            rv = self.client.post('/api/refresh', headers={
                 "Authorization": "Bearer "+old_token
             })
             self.assertEqual(rv.status_code, 401)
@@ -425,10 +419,6 @@ class TestApi(unittest.TestCase):
 
             #Another request with the new password
             rv = self.login_request(self.username, self.password)
-            """rv = self.client.post('/api/user/login', data=dict(
-                username=self.username,
-                password=self.password
-            ))"""
             data = json.loads(rv.data)
             self.assertEqual(rv.status_code, 200)
             self.assertEqual(data['status'], 'success')
@@ -484,7 +474,7 @@ class TestApi(unittest.TestCase):
             self.__class__.normal_access_token = data['access_token']
 
             #Request to logout
-            rv = self.client.post('/api/user/logout', headers={
+            rv = self.client.post('/api/logout', headers={
                 "Authorization": "Bearer "+self.normal_access_token
             })
             self.assertEqual(rv.status_code, 200)

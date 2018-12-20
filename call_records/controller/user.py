@@ -3,17 +3,14 @@ from flask_restplus import Resource
 
 from call_records.dto.user import UserDto
 from call_records.service.user import (save_user, get_a_user, get_all_users,
-    login_user, get_refresh_token, logout_user, update_user)
+    update_user)
 from call_records.controller import user_required, admin_required
 from flask_restplus import reqparse, inputs
-from flask_jwt_extended import jwt_refresh_token_required, get_raw_jwt
 
 ns = UserDto.ns
 userDtoModel = UserDto.user
 userListDtoModel = UserDto.userList
-userLogInDtoModel = UserDto.userLogIn
-userRefreshDtoModel = UserDto.userRefresh
-userResponsesDtoModel = UserDto.userResponses
+userResponseDtoModel = UserDto.userResponses
 
 def get_parser_user():
     parser = reqparse.RequestParser()
@@ -77,7 +74,7 @@ class UserSpecific(Resource):
 
     @user_required
     @ns.expect(get_parser_update_user(), validate=True)
-    @ns.marshal_with(userResponsesDtoModel, skip_none=True)
+    @ns.marshal_with(userResponseDtoModel, skip_none=True)
     @ns.doc(responses={
         200: 'Successfully updated',
         404: 'User not found'
@@ -96,39 +93,3 @@ class UserSpecific(Resource):
                 'message': 'Try again'
             }
             return response_object, 500
-
-@ns.route('/login')
-class UserLogin(Resource):
-    @ns.expect(get_parser_user(), validate=True)
-    @ns.marshal_with(userLogInDtoModel, skip_none=True)
-    @ns.doc(responses={
-        200: 'Success',
-        401: 'Username or password does not match'
-    })
-    @ns.doc(security=[])
-    def post(self):
-        """To Login in"""
-        parser = get_parser_user()
-        data = parser.parse_args()
-
-        return login_user(data=data)
-
-@ns.route('/refresh')
-class UserLoginRefresh(Resource):
-    @user_required
-    @ns.marshal_with(userRefreshDtoModel, skip_none=True)
-    #@jwt_refresh_token_required
-    def post(self):
-        """To get a refresh token"""
-        return get_refresh_token()
-
-@ns.route('/logout')
-class UserLogout(Resource):
-    @user_required
-    @ns.marshal_with(userResponsesDtoModel, skip_none=True)
-    @ns.doc(responses={
-        200: 'Logout Successfully'
-    })
-    def post(self):
-        """To logout an user"""
-        return logout_user()
