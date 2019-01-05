@@ -38,7 +38,7 @@ def configure_logging(app, config_name):
 def configure_blueprint(app):
     app.register_blueprint(home.bp)
 
-def configure_namespace(app):
+def configure_restplus(app, jwt):
     authorizations = {
         'Bearer Auth': {
             'type': 'apiKey',
@@ -54,8 +54,11 @@ def configure_namespace(app):
               authorizations=authorizations,
               security='Bearer Auth')
 
-    api.add_namespace(UserDto.ns, path='/api/user')
     api.add_namespace(AuthDto.ns, path='/api')
+    api.add_namespace(UserDto.ns, path='/api/user')
+
+    #https://github.com/vimalloc/flask-jwt-extended/issues/86
+    jwt._set_error_handler_callbacks(api)
 
 def configure_jwt(app):
     app.config['JWT_SECRET_KEY'] = 'AUIRgoasdgfuyAUYFaisuebf'  # Change this!
@@ -85,6 +88,8 @@ def configure_jwt(app):
         from call_records.service.tokenblacklist import is_token_revoked
         return is_token_revoked(decoded_token)
 
+    return jwt
+
 def configure_user_admin(app):
     username = app.config.get('ADMIN_USERNAME')
     password = app.config.get('ADMIN_PASSWORD')
@@ -94,16 +99,15 @@ def configure_user_admin(app):
         from call_records.service.user import check_first_admin_user
         check_first_admin_user()
 
-
 def create_app(config_name):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(app_config[config_name])
 
     configure_logging(app, config_name)
     configure_db(app)
-    configure_jwt(app)
     configure_blueprint(app)
-    configure_namespace(app)
+    jwt = configure_jwt(app)
+    configure_restplus(app, jwt)
     configure_user_admin(app)
 
     return app
