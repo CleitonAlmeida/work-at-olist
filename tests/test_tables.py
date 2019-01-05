@@ -3,8 +3,9 @@ import unittest
 import os
 import json
 from call_records import create_app, db
-from call_records.models import Call, Bill
+from call_records.models import Bill
 from call_records.model.user import User
+from call_records.model.call import Call
 
 import unittest
 

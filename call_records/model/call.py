@@ -1,19 +1,15 @@
-# app/models.py
+from call_records import db
 
-from . import db
-from passlib.hash import pbkdf2_sha256
-from passlib import pwd
+class Call(db.Model):
 
-class Bill(db.Model):
-
-    __tablename__ = 'bills'
+    __tablename__ = 'calls'
 
     id = db.Column(db.Integer, primary_key=True)
-    bill_id = db.Column(db.Integer, unique=True)
-    initial_period = db.Column(db.DateTime(timezone=True))
-    end_period = db.Column(db.DateTime(timezone=True))
-    subscriber_number = db.Column(db.String(15))
-    price = db.Column(db.Float())
+    initial_timestamp = db.Column(db.DateTime(timezone=True))
+    end_timestamp = db.Column(db.DateTime(timezone=True))
+    call_id = db.Column(db.Integer, unique=True)
+    source_number = db.Column(db.String(15))
+    destination_number = db.Column(db.String(15))
     date_created = db.Column(db.DateTime(timezone=True), default=db.func.current_timestamp())
     date_modified = db.Column(
         db.DateTime(timezone=True), default=db.func.current_timestamp(),
@@ -25,11 +21,11 @@ class Bill(db.Model):
 
     @staticmethod
     def get_all():
-        return Bill.query.all()
+        return Call.query.all()
 
     def delete(self):
         db.session.delete(self)
         db.session.commit()
 
     def __repr__(self):
-        return "<Bill: {}>".format(self.bill_id)
+        return "<Call: {}>".format(self.call_id)
