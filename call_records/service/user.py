@@ -5,7 +5,7 @@ def save_changes(data):
 
 def save_user(data, is_new=True):
     from call_records.model.user import User
-    from call_records.service.tokenblacklist import revoke_token_user
+    from call_records.service.tokenblacklist import revoke_user_token
     from flask import current_app
 
     try:
@@ -33,7 +33,7 @@ def save_user(data, is_new=True):
             When a password update occurs, we need to revoke the tokens
             to force a new login
             """
-            revoke_token_user(user.username)
+            revoke_user_token(user.username)
             response_object = {
                 'status': 'success',
                 'message': 'Successfully updated'

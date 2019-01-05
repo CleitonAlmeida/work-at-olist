@@ -37,9 +37,8 @@ class UserLogin(Resource):
 
 @ns.route('/refresh')
 class UserLoginRefresh(Resource):
-    @user_required
-    @ns.marshal_with(authRefreshDtoModel, skip_none=True)
-    #@jwt_refresh_token_required
+    @jwt_refresh_token_required
+    @ns.marshal_with(authRefreshDtoModel, skip_none=True)    
     def post(self):
         """To get a refresh token"""
         return get_refresh_token()

@@ -9,7 +9,7 @@ from flask import json
 class TestApi(unittest.TestCase):
 
     """ Tests for API. """
-    #Users for tests (normal and admin)
+    #Users for tests (normal 'username' and admin 'username_a')
     username = 'teste'
     password = 'teste123'
 
@@ -18,6 +18,9 @@ class TestApi(unittest.TestCase):
 
     admin_access_token = None
     normal_access_token = None
+
+    admin_refresh_token = None
+    normal_refresh_token = None
 
     def login_request(self, username, password):
         with self.app.app_context():
@@ -50,12 +53,14 @@ class TestApi(unittest.TestCase):
 
         data = json.loads(rv.data)
         cls.admin_access_token = data['access_token']
+        cls.admin_refresh_token = data['refresh_token']
 
         cls.client = cls.app.test_client()
         rv = cls.login_request(cls, cls.username, cls.password)
 
         data = json.loads(rv.data)
         cls.normal_access_token = data['access_token']
+        cls.normal_refresh_token = data['refresh_token']
 
     @classmethod
     def tearDownClass(cls):
@@ -227,7 +232,7 @@ class TestApi(unittest.TestCase):
         with self.app.app_context():
             old_token = self.admin_access_token
             rv = self.client.post('/api/refresh', headers={
-                "Authorization": "Bearer "+self.admin_access_token
+                "Authorization": "Bearer "+self.admin_refresh_token
             })
             data = json.loads(rv.data)
             #self.logger.info('data %s', data)
@@ -245,22 +250,12 @@ class TestApi(unittest.TestCase):
             self.assertEqual(rv.status_code, 200)
             self.assertEqual(rv.mimetype, 'application/json')
 
-            #Another request with old token (invalid)
-            rv = self.client.get('/api/user/', headers={
-                "Authorization": "Bearer "+old_token
-            })
-            self.assertEqual(rv.status_code, 401)
-            self.assertEqual(rv.mimetype, 'application/json')
-            data = json.loads(rv.data)
-            self.assertEqual(data['status'], 'fail')
-            self.assertEqual(data['message'], 'Token has been revoked')
-
     def test_3_1_refresh_token(self):
         """ Tests that API get a refresh token. """
         with self.app.app_context():
             old_token = self.normal_access_token
             rv = self.client.post('/api/refresh', headers={
-                "Authorization": "Bearer "+self.normal_access_token
+                "Authorization": "Bearer "+self.normal_refresh_token
             })
             data = json.loads(rv.data)
             self.assertEqual(rv.status_code, 200)
@@ -278,7 +273,7 @@ class TestApi(unittest.TestCase):
 
             #Another request with the new token
             rv = self.client.post('/api/refresh', headers={
-                "Authorization": "Bearer "+self.normal_access_token
+                "Authorization": "Bearer "+self.normal_refresh_token
             })
             data = json.loads(rv.data)
             self.assertEqual(rv.status_code, 200)
@@ -286,16 +281,6 @@ class TestApi(unittest.TestCase):
             self.assertEqual(data['status'], 'success')
             self.assertIsNotNone(data['access_token'])
             self.__class__.normal_access_token = data['access_token']
-
-            #Another request with old token (invalid)
-            rv = self.client.post('/api/refresh', headers={
-                "Authorization": "Bearer "+old_token
-            })
-            self.assertEqual(rv.status_code, 401)
-            self.assertEqual(rv.mimetype, 'application/json')
-            data = json.loads(rv.data)
-            self.assertEqual(data['status'], 'fail')
-            self.assertEqual(data['message'], 'Token has been revoked')
 
     def test_4_update_user_admin(self):
         """Tests update password user (admin - sucessfully)"""
@@ -472,6 +457,7 @@ class TestApi(unittest.TestCase):
             rv = self.login_request(self.username, self.password)
             data = json.loads(rv.data)
             self.__class__.normal_access_token = data['access_token']
+            self.__class__.normal_refresh_token = data['refresh_token']
 
             #Request to logout
             rv = self.client.post('/api/logout', headers={
@@ -483,15 +469,15 @@ class TestApi(unittest.TestCase):
             self.assertEqual(data['status'], 'success')
             self.assertEqual(data['message'], 'Logout Successfully')
 
-            #Another request with the token revoked
-            rv = self.client.get('/api/user/', headers={
-                "Authorization": "Bearer "+self.normal_access_token
+            #Another request with the refresh token revoked
+            rv = self.client.post('/api/refresh', headers={
+                "Authorization": "Bearer "+self.normal_refresh_token
             })
+            self.app.logger.info('data %s', rv.data)
             self.assertEqual(rv.status_code, 401)
             self.assertEqual(rv.mimetype, 'application/json')
             data = json.loads(rv.data)
-            self.assertEqual(data['status'], 'fail')
-            self.assertEqual(data['message'], 'Token has been revoked')
+            self.assertEqual(data['msg'], 'Token has been revoked')
 
 if __name__ == '__main__':
     unittest.main()

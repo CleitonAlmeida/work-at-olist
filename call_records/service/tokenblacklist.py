@@ -14,10 +14,10 @@ def _epoch_utc_to_datetime(epoch_utc):
     """
     return datetime.fromtimestamp(epoch_utc)
 
-def revoke_token_user(user):
+def revoke_user_token(user):
     """ Revoke any unrevoked token for this user """
     olds_token = TokenBlacklist.query.filter(
-        (TokenBlacklist.user_identity==user) and (TokenBlacklist.revoked==False)
+        TokenBlacklist.user_identity==user and TokenBlacklist.revoked==False
     ).all()
     for token in olds_token:
         token.revoke()
@@ -28,14 +28,15 @@ def add_token_to_database(encoded_token, identity_claim):
     :param identity_claim:
     """
     decoded_token = decode_token(encoded_token)
-    #Revoke any unrevoked token for this user
-    revoke_token_user(decoded_token[identity_claim])
 
     jti = decoded_token['jti']
     token_type = decoded_token['type']
     user_identity = decoded_token[identity_claim]
     expires = _epoch_utc_to_datetime(decoded_token['exp'])
     revoked = False
+
+    #Revoke any unrevoked access token for this user
+    revoke_user_token(user_identity)
 
     db_token = TokenBlacklist(
         jti=jti,
@@ -49,12 +50,16 @@ def add_token_to_database(encoded_token, identity_claim):
 
 def is_token_revoked(decoded_token):
     """
-    Checks if the given token is revoked or not. Because we are adding all the
-    tokens that we create into this database, if the token is not present
-    in the database we are going to consider it revoked, as we don't know where
-    it was created.
+    Checks if the given token is revoked or not. If an token isn't found in this
+    database we consider as revoked (just in case of refresh tokens),
+    because we dont save all tokens, just the refresh tokens.
     """
     jti = decoded_token['jti']
+    token_type = decoded_token['type']
+
+    if token_type == 'access':
+        return False
+
     try:
         token = TokenBlacklist.query.filter_by(jti=jti).one()
         return token.revoked
