@@ -1,5 +1,6 @@
 from flask_restplus import Namespace, fields
-from call_records.dto import standardPaginationDtoModel, standardResponseDtoModel
+from call_records.dto import standardPaginationDtoModel,\
+                            standardResponseDtoModel
 
 class CallDto(object):
 

@@ -10,7 +10,9 @@ class Call(db.Model):
     call_id = db.Column(db.Integer, unique=True)
     source_number = db.Column(db.String(15))
     destination_number = db.Column(db.String(15))
-    date_created = db.Column(db.DateTime(timezone=True), default=db.func.current_timestamp())
+    date_created = db.Column(
+        db.DateTime(timezone=True),
+        default=db.func.current_timestamp())
     date_modified = db.Column(
         db.DateTime(timezone=True), default=db.func.current_timestamp(),
         onupdate=db.func.current_timestamp())

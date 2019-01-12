@@ -29,4 +29,7 @@ class Call(Resource):
         """List all registered calls"""
         parser = get_parser_pagination()
         data = parser.parse_args()
-        return service.get_calls(paginated=True, start=data.get('start'), limit=data.get('limit'))
+        return service.get_calls(
+            paginated=True,
+            start=data.get('start'),
+            limit=data.get('limit'))
