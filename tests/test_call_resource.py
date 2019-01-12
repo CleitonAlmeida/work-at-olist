@@ -5,6 +5,7 @@ from call_records.model.call import Call
 from call_records.model.user import User
 from tests import set_logger
 from flask import json
+from datetime import datetime, timedelta
 
 class TestApi(unittest.TestCase):
 
@@ -84,18 +85,52 @@ class TestApi(unittest.TestCase):
     def setUp(self):
         self.logger = set_logger(self)
 
+    def test_insert_calls(self):
+        pass
+        with self.app.app_context():
+            for i in range(1, 30):
+                call = Call()
+                call.call_id = i
+                call.initial_timestamp = datetime.now()
+                call.end_timestamp = datetime.now() + timedelta(minutes=i)
+                call.source_number = '55041991024554'
+                call.destination_number = '55041997044972'
+                call.save()
+
     def test_0_get_list_call(self):
         """ Tests that API route returns 200 and JSON mimetype and minimum one call registred. """
         with self.app.app_context():
-            rv = self.client.get('/api/call/', headers={
-                "Authorization": "Bearer "+self.admin_access_token
+            count = 0
+            page = 0
+            next_page = ' '
+            while count == 0 and len(next_page) > 0:
+                page+=10
+                print('WHILE '+str(page))
+                print(next_page)
+                rv = self.client.get('/api/call/?start='+str(page)+'&limit=10', headers={
+                    "Authorization": "Bearer "+self.normal_access_token
+                })
+                self.assertEqual(rv.status_code, 200)
+                self.assertEqual(rv.mimetype, 'application/json')
+                data = json.loads(rv.data)
+                next_page = data['data']['next']
+                for call in data['data']['results']:
+                    if call.get('call_id') == self.call_id:
+                        count+=1
+                        break
+
+            self.assertEqual(count, 1)
+
+
+    def test_1_get_specific_call(self):
+        """ Tests that API get a specific call. """
+        with self.app.app_context():
+            rv = self.client.get('/api/call/'+self.call_id, headers={
+                "Authorization": "Bearer "+self.normal_access_token
             })
-            self.assertEqual(rv.status_code, 200)
-            self.assertEqual(rv.mimetype, 'application/json')
 
             data = json.loads(rv.data)
-            count = 0
-            for call in data['data']['results']:
-                if call.get('call_id') == self.call_id:
-                    count+=1
-            self.assertEqual(count, 1)
+            #self.logger.info('data %s', data)
+            self.assertEqual(rv.status_code, 200)
+            self.assertEqual(rv.mimetype, 'application/json')
+            self.assertEqual(data['call_id'], self.call_id)

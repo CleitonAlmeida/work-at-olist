@@ -10,3 +10,6 @@ class CallService(object):
                 start=start, limit=limit)
         else:
             return Call.query.all()
+
+    def get_a_call(self, call_id):
+        return Call.query.filter_by(call_id=call_id).first()

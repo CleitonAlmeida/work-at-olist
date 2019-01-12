@@ -10,10 +10,6 @@ service = CallService()
 ns = Namespace('call', description='Call')
 dto = CallDto(ns)
 
-callDtoModel = dto.call
-callListDtoModel = dto.callList
-callResponseDtoModel = dto.callResponses
-
 def get_parser_pagination():
     parser = reqparse.RequestParser()
     parser.add_argument('start', type=int, required=False, default=1)
@@ -24,7 +20,7 @@ def get_parser_pagination():
 class Call(Resource):
     @user_required
     @ns.expect(get_parser_pagination(), validate=True)
-    @ns.marshal_list_with(callListDtoModel, envelope='data', skip_none=True)
+    @ns.marshal_list_with(dto.callList, envelope='data', skip_none=True)
     def get(self, page=None):
         """List all registered calls"""
         parser = get_parser_pagination()
@@ -33,3 +29,17 @@ class Call(Resource):
             paginated=True,
             start=data.get('start'),
             limit=data.get('limit'))
+
+@ns.route('/<call_id>')
+@ns.param('call_id', 'The Call identifier')
+@ns.response(404, 'Call not found.')
+class CallSpecific(Resource):
+    @user_required
+    @ns.marshal_with(dto.call)
+    def get(self, call_id):
+        """Get an call given its ID"""
+        call = service.get_a_call(call_id)
+        if not call:
+            ns.abort(404, 'Call not found')
+        else:
+            return call
