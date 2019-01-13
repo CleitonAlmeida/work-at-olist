@@ -12,4 +12,23 @@ class CallService(object):
             return Call.query.all()
 
     def get_a_call(self, call_id):
-        return Call.query.filter_by(call_id=call_id).first()
+        call = Call.query.filter_by(call_id=call_id).first()
+        if call:
+            return call
+        else:
+            return {}, 404
+
+    def delete_a_call(self, call_id):
+        try:
+            call = Call.query.filter_by(call_id=call_id).first()
+            if call:
+                call.delete()
+                return True
+            else:
+                return False
+        except Exception as e:
+            response_object = {
+                'status': 'fail',
+                'message': e
+            }
+            return response_object, 500

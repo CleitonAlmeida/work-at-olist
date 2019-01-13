@@ -37,9 +37,27 @@ class CallSpecific(Resource):
     @user_required
     @ns.marshal_with(dto.call)
     def get(self, call_id):
-        """Get an call given its ID"""
+        """Get a call given its ID"""
         call = service.get_a_call(call_id)
         if not call:
             ns.abort(404, 'Call not found')
         else:
             return call
+
+    @user_required
+    @ns.marshal_with(dto.callResponses)
+    def delete(self, call_id):
+        """Delete a call given its ID"""
+        result = service.delete_a_call(int(call_id))
+        if not result:
+            response_object = {
+                'status': 'fail',
+                'message': 'Call not found'
+            }
+            return response_object, 404
+        else:
+            response_object = {
+                'status': 'success',
+                'message': 'Call deleted'
+            }
+            return response_object, 200
