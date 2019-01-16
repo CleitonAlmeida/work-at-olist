@@ -35,14 +35,20 @@ class Call(Resource):
 @ns.response(404, 'Call not found.')
 class CallSpecific(Resource):
     @user_required
-    @ns.marshal_with(dto.call)
+    @ns.marshal_with(dto.call, skip_none=True)
     def get(self, call_id):
         """Get a call given its ID"""
         call = service.get_a_call(call_id)
         if not call:
-            ns.abort(404, 'Call not found')
+            response_object = {
+                'status': 'fail',
+                'message': 'Call not found'
+            }
+            return response_object, 404
         else:
             return call
+
+
 
     @user_required
     @ns.marshal_with(dto.callResponses)
