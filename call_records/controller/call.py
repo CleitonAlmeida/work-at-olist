@@ -1,6 +1,7 @@
-from flask import current_app
+from flask import current_app, request
 from flask_restplus import Resource, Namespace
 from flask_restplus import reqparse
+from datetime import datetime
 
 from call_records.controller import user_required
 from call_records.dto.call import CallDto
@@ -16,6 +17,17 @@ def get_parser_pagination():
     parser.add_argument('limit', type=int, required=False)
     return parser
 
+def get_call_parser(type, verb):
+    parser = reqparse.RequestParser()
+    parser.add_argument('type', type=str, choices=['start', 'end'], required=True)
+    parser.add_argument('timestamp', type=lambda x: datetime.strptime(x,'%Y-%m-%dT%H:%M:%SZ'), required=True)
+    if type == 'start':
+        parser.add_argument('source', type=int, required=True)
+        parser.add_argument('destination', type=int, required=True)
+    if verb == 'post':
+        parser.add_argument('call_id', type=int, required=True)
+    return parser
+
 @ns.route('/')
 class Call(Resource):
     @user_required
@@ -29,6 +41,15 @@ class Call(Resource):
             paginated=True,
             start=data.get('start'),
             limit=data.get('limit'))
+
+    @user_required
+    @ns.expect(get_call_parser('', 'post'), validate=True)
+    @ns.marshal_with(dto.callResponses)
+    def post(self):
+        type = request.form.get('type')
+        parser = get_call_parser(type, 'post')
+        data = parser.parse_args()
+        return service.save_call(data=data)
 
 @ns.route('/<call_id>')
 @ns.param('call_id', 'The Call identifier')
@@ -48,7 +69,14 @@ class CallSpecific(Resource):
         else:
             return call
 
-
+    @user_required
+    @ns.expect(get_call_parser('', 'put'), validate=True)
+    @ns.marshal_with(dto.callResponses)
+    def put(self, call_id):
+        type = request.form.get('type')
+        parser = get_call_parser(type, 'put')
+        data = parser.parse_args()
+        return service.update_call(call_id=call_id, data=data)
 
     @user_required
     @ns.marshal_with(dto.callResponses)

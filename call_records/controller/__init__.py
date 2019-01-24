@@ -7,13 +7,13 @@ def user_required(fn):
     def wrapper(*args, **kwargs):
         try:
             verify_jwt_in_request()
-            return fn(*args, **kwargs)
         except Exception as e:
             response_object = {
                 'status': 'fail',
                 'message': str(e)
             }
             return response_object, 401
+        return fn(*args, **kwargs)
     return wrapper
 
 def admin_required(fn):
