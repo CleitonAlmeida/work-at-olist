@@ -51,7 +51,7 @@ class Call(Resource):
         data = parser.parse_args()
         return service.save_call(data=data)
 
-@ns.route('/<call_id>')
+@ns.route('/<int:call_id>')
 @ns.param('call_id', 'The Call identifier')
 @ns.response(404, 'Call not found.')
 class CallSpecific(Resource):
