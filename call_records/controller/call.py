@@ -11,22 +11,30 @@ service = CallService()
 ns = Namespace('call', description='Call')
 dto = CallDto(ns)
 
+
 def get_parser_pagination():
     parser = reqparse.RequestParser()
     parser.add_argument('start', type=int, required=False, default=1)
     parser.add_argument('limit', type=int, required=False)
     return parser
 
+
 def get_call_parser(type, verb):
     parser = reqparse.RequestParser()
-    parser.add_argument('type', type=str, choices=['start', 'end'], required=True)
-    parser.add_argument('timestamp', type=lambda x: datetime.strptime(x,'%Y-%m-%dT%H:%M:%SZ'), required=True)
+    parser.add_argument('type', type=str,
+                        choices=['start', 'end'],
+                        required=True)
+    parser.add_argument('timestamp',
+                        type=lambda x:
+                            datetime.strptime(x, '%Y-%m-%dT%H:%M:%SZ'),
+                        required=True)
     if type == 'start':
         parser.add_argument('source', type=int, required=True)
         parser.add_argument('destination', type=int, required=True)
     if verb == 'post':
         parser.add_argument('call_id', type=int, required=True)
     return parser
+
 
 @ns.route('/')
 class Call(Resource):
@@ -50,6 +58,7 @@ class Call(Resource):
         parser = get_call_parser(type, 'post')
         data = parser.parse_args()
         return service.save_call(data=data)
+
 
 @ns.route('/<int:call_id>')
 @ns.param('call_id', 'The Call identifier')

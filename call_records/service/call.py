@@ -5,12 +5,13 @@ from sqlalchemy import between, or_, and_
 from sqlalchemy.orm import exc as sa_exc
 from call_records import db
 
+
 class CallService(object):
 
     def get_calls(self, paginated=False, start=None, limit=None):
         if paginated:
-            return paginated_list(Call, request.base_url,\
-                start=start, limit=limit)
+            return paginated_list(Call, request.base_url,
+                                  start=start, limit=limit)
         else:
             return Call.query.all()
 
@@ -23,7 +24,7 @@ class CallService(object):
 
     def update_call(self, call_id, data):
         try:
-            call = Call.query.filter(Call.call_id==call_id).one()
+            call = Call.query.filter(Call.call_id == call_id).one()
         except sa_exc.NoResultFound as e:
             response_object = {
                 'status': 'fail',
@@ -51,7 +52,6 @@ class CallService(object):
         }
         return response_object, 200
 
-
     def save_call(self, data):
         try:
             filters = (
@@ -73,7 +73,7 @@ class CallService(object):
 
         elif call is None:
             call = Call(
-                call_id = data['call_id']
+                call_id=data['call_id']
             )
         if data['type'] == 'start':
             call.initial_timestamp = data['timestamp']
@@ -118,22 +118,22 @@ class CallService(object):
                 return False
 
         query = Call.query.filter(
-                and_(
-                    Call.initial_timestamp != None,
-                    Call.end_timestamp != None
-                )
-            ).filter(
-                or_(
-                    or_(Call.source_number==str(call.destination_number),
-                        Call.destination_number==str(call.source_number)
-                    ),
-                    or_(Call.source_number==str(call.source_number),
-                        Call.destination_number==str(call.destination_number)
-                    )
-                )
+            and_(
+                Call.initial_timestamp != None,
+                Call.end_timestamp != None
             )
+        ).filter(
+            or_(
+                or_(Call.source_number == str(call.destination_number),
+                    Call.destination_number == str(call.source_number)
+                    ),
+                or_(Call.source_number == str(call.source_number),
+                    Call.destination_number == str(call.destination_number)
+                    )
+            )
+        )
         if call.initial_timestamp is not None\
-            and call.end_timestamp is not None:
+                and call.end_timestamp is not None:
             query = query.filter(
                 or_(
                     or_(

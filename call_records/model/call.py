@@ -3,6 +3,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from datetime import datetime
 import pytz
 
+
 class Call(db.Model):
 
     __tablename__ = 'calls'
