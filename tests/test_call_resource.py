@@ -366,40 +366,63 @@ class TestApi(unittest.TestCase):
             data = json.loads(rv.data)
             self.assertEqual(data['status'], 'fail')
 
-    def get_list_call(self):
-        """ Tests that API route returns 200 and JSON mimetype and minimum one call registred. """
+    def test_2_0_get_list_call(self):
+        """ Tests get calls with pagination. """
         with self.app.app_context():
             count = 0
-            page = 0
+            page = 1
             next_page = ' '
             while count == 0 and len(next_page) > 0:
-                page+=10
-                print('WHILE '+str(page))
-                print(next_page)
-                rv = self.client.get('/api/call/?start='+str(page)+'&limit=10', headers={
+                rv = self.client.get('/api/call/?start='+str(page)+'&limit=2', headers={
                     "Authorization": "Bearer "+self.normal_access_token
                 })
                 self.assertEqual(rv.status_code, 200)
-                self.assertEqual(rv.mimetype, 'application/json')
                 data = json.loads(rv.data)
+                self.assertEqual(rv.mimetype, 'application/json')
                 next_page = data['data']['next']
                 for call in data['data']['results']:
                     if call.get('call_id') == self.main_call_id:
                         count+=1
                         break
+                page+=1
 
             self.assertEqual(count, 1)
 
 
-    def get_specific_call(self):
-        """ Tests that API get a specific call. """
+    def test_2_1_get_specific_call(self):
+        """ Tests get a specific call. """
         with self.app.app_context():
-            rv = self.client.get('/api/call/'+str(self.main_call_id), headers={
-                "Authorization": "Bearer "+self.normal_access_token
+            main_call = Call.query.\
+                filter(Call.call_id == self.main_call_id).one()
+
+            rv = self.client.get('/api/call/'+str(main_call.call_id),
+                headers={
+                    "Authorization": "Bearer "+self.normal_access_token
             })
 
             data = json.loads(rv.data)
             #self.logger.info('data %s', data)
             self.assertEqual(rv.status_code, 200)
             self.assertEqual(rv.mimetype, 'application/json')
-            self.assertEqual(data['call_id'], self.main_call_id)
+            self.assertEqual(data['call_id'], main_call.call_id)
+            self.assertEqual(data['source_number'], main_call.source_number)
+            self.assertEqual(data['destination_number'],
+                main_call.destination_number)
+            self.assertEqual(data['initial_timestamp'],
+                main_call.initial_timestamp.strftime("%Y-%m-%dT%H:%M:%S+00:00"))
+            self.assertEqual(data['end_timestamp'],
+                main_call.end_timestamp.strftime("%Y-%m-%dT%H:%M:%S+00:00"))
+            self.assertEqual(data['date_created'],
+                main_call.date_created.strftime("%Y-%m-%dT%H:%M:%S.%f-03:00"))
+            self.assertEqual(data['date_modified'],
+                main_call.date_modified.strftime("%Y-%m-%dT%H:%M:%S.%f-03:00"))
+
+    def test_2_2_get_nonexistent_call(self):
+        """ Tests get a specific call that doesnt exist """
+        with self.app.app_context():
+            rv = self.client.get('/api/call/23', headers={
+                    "Authorization": "Bearer "+self.normal_access_token
+            })
+            data = json.loads(rv.data)
+            self.assertEqual(rv.status_code, 404)
+            self.assertEqual(rv.mimetype, 'application/json')
