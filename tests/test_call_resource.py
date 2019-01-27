@@ -3,6 +3,7 @@ import unittest
 from call_records import create_app, db
 from call_records.model.call import Call
 from call_records.model.user import User
+from call_records import fixed
 from tests import set_logger
 from flask import json
 from datetime import datetime, timedelta
@@ -434,3 +435,32 @@ class TestApi(unittest.TestCase):
             data = json.loads(rv.data)
             self.assertEqual(rv.status_code, 404)
             self.assertEqual(rv.mimetype, 'application/json')
+
+    def test_3_0_delete_call(self):
+        """ Test delete a call """
+        with self.app.app_context():
+            rv = self.client.delete('/api/call/'+str(self.main_call_id), headers={
+                "Authorization": "Bearer "+self.normal_access_token
+            })
+            data = json.loads(rv.data)
+            self.assertEqual(rv.status_code, 200)
+            self.assertEqual(rv.mimetype, 'application/json')
+
+            try:
+                call = db.session.query(Call).filter(
+                    Call.call_id == self.main_call_id).one()
+            except sa_exc.NoResultFound as e:
+                call = None
+
+            self.assertEqual(call, None)
+
+    def test_3_1_delete_nonexistent_call(self):
+        """ Test delete a nonexistent call """
+        with self.app.app_context():
+            rv = self.client.delete('/api/call/'+str(self.main_call_id), headers={
+                "Authorization": "Bearer "+self.normal_access_token
+            })
+            data = json.loads(rv.data)
+            self.assertEqual(rv.status_code, 404)
+            self.assertEqual(rv.mimetype, 'application/json')
+            self.assertEqual(data['message'], fixed.MSG_CALL_NOT_FOUND)

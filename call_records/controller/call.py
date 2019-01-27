@@ -6,6 +6,7 @@ from datetime import datetime
 from call_records.controller import user_required
 from call_records.dto.call import CallDto
 from call_records.service.call import CallService
+from call_records import fixed
 
 service = CallService()
 ns = Namespace('call', description='Call')
@@ -62,7 +63,7 @@ class Call(Resource):
 
 @ns.route('/<int:call_id>')
 @ns.param('call_id', 'The Call identifier')
-@ns.response(404, 'Call not found.')
+@ns.response(404, fixed.MSG_CALL_NOT_FOUND)
 class CallSpecific(Resource):
     @user_required
     @ns.marshal_with(dto.call, skip_none=True)
@@ -72,7 +73,7 @@ class CallSpecific(Resource):
         if not call:
             response_object = {
                 'status': 'fail',
-                'message': 'Call not found'
+                'message': fixed.MSG_CALL_NOT_FOUND
             }
             return response_object, 404
         else:
@@ -95,7 +96,7 @@ class CallSpecific(Resource):
         if not result:
             response_object = {
                 'status': 'fail',
-                'message': 'Call not found'
+                'message': fixed.MSG_CALL_NOT_FOUND
             }
             return response_object, 404
         else:

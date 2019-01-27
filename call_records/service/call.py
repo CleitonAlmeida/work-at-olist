@@ -1,5 +1,6 @@
 from call_records.model.call import Call
 from call_records.service.util import paginated_list
+from call_records import fixed
 from flask import request, current_app
 from sqlalchemy import between, or_, and_
 from sqlalchemy.orm import exc as sa_exc
@@ -28,7 +29,7 @@ class CallService(object):
         except sa_exc.NoResultFound as e:
             response_object = {
                 'status': 'fail',
-                'message': 'Call not found'
+                'message': fixed.MSG_CALL_NOT_FOUND
             }
             return response_object, 404
 
@@ -41,14 +42,14 @@ class CallService(object):
         if not self.__valid_call_period(call):
             response_object = {
                 'status': 'fail',
-                'message': 'Time conflict of calls'
+                'message': fixed.MSG_CONFLICT_CALLS
             }
             return response_object, 409
 
         call.save()
         response_object = {
             'status': 'success',
-            'message': 'Successfully updated'
+            'message': fixed.MSG_SUCCESSFULLY_UPDATED
         }
         return response_object, 200
 
@@ -67,7 +68,7 @@ class CallService(object):
                     (data['type'] == 'end' and call.end_timestamp is not None)):
                 response_object = {
                     'status': 'fail',
-                    'message': 'Action not allowed'
+                    'message': fixed.MSG_ACTION_NOT_ALLOWED
                 }
                 return response_object, 405
 
@@ -85,14 +86,14 @@ class CallService(object):
         if not self.__valid_call_period(call):
             response_object = {
                 'status': 'fail',
-                'message': 'Period of call is invalid'
+                'message': fixed.MSG_CONFLICT_CALLS
             }
             return response_object, 409
 
         call.save()
         response_object = {
             'status': 'success',
-            'message': 'Successfully registered'
+            'message': fixed.MSG_SUCCESSFULLY_REGISTRED
         }
         return response_object, 201
 
