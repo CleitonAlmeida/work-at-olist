@@ -1,5 +1,6 @@
 from functools import wraps
 from flask_jwt_extended import verify_jwt_in_request, get_jwt_claims
+from flask.json import jsonify
 
 # Here is a custom decorator that verifies the JWT is present in the request
 def user_required(fn):
@@ -37,3 +38,10 @@ def admin_required(fn):
             }
             return response_object, 403
     return wrapper
+
+def page_not_found(e):
+    response_object = {
+        'status': 'fail',
+        'message': 'Page not found'
+    }
+    return jsonify(response_object), 404
