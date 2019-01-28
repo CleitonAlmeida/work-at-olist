@@ -10,9 +10,7 @@ from .config import app_config
 from flask.logging import default_handler
 from flask_jwt_extended import JWTManager
 
-from call_records.controller import user, auth,\
-    page_not_found
-from call_records.dto.user import UserDto
+from call_records.controller import auth, page_not_found
 from call_records.dto.auth import AuthDto
 
 db = SQLAlchemy()
@@ -55,10 +53,10 @@ def configure_restplus(app, jwt):
               authorizations=authorizations,
               security='Bearer Auth')
 
-    from call_records.controller import call
+    from call_records.controller import call, user
 
     api.add_namespace(AuthDto.ns, path='/api')
-    api.add_namespace(UserDto.ns, path='/api/user')
+    api.add_namespace(user.ns, path='/api/user')
     api.add_namespace(call.ns, path='/api/call')
 
     #https://github.com/vimalloc/flask-jwt-extended/issues/86
@@ -100,7 +98,7 @@ def configure_user_admin(app):
 
     if username and password:
         app.app_context().push()
-        from call_records.service.user import check_first_admin_user
+        from call_records.service.user_check import check_first_admin_user
         check_first_admin_user()
 
 def configure_error_handler(app):

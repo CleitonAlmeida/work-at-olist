@@ -1,17 +1,14 @@
 from flask import current_app
-from flask_restplus import Resource
-
 from call_records import fixed
 from call_records.dto.user import UserDto
-from call_records.service.user import (save_user, get_a_user, get_all_users,
-                                       update_user)
+from call_records.service.user import UserService
 from call_records.controller import user_required, admin_required
+from flask_restplus import Resource, Namespace
 from flask_restplus import reqparse, inputs
 
-ns = UserDto.ns
-userDtoModel = UserDto.user
-userListDtoModel = UserDto.userList
-userResponseDtoModel = UserDto.userResponses
+service = UserService()
+ns = Namespace('user', description='User')
+dto = UserDto(ns)
 
 
 def get_parser_user():
@@ -43,12 +40,12 @@ def get_parser_pagination():
 class User(Resource):
     @admin_required
     @ns.expect(get_parser_pagination(), validate=True)
-    @ns.marshal_list_with(userListDtoModel, envelope='data', skip_none=True)
+    @ns.marshal_list_with(dto.userList, envelope='data', skip_none=True)
     def get(self, page=None):
         """List all registered users"""
         parser = get_parser_pagination()
         data = parser.parse_args()
-        return get_all_users(paginated=True,
+        return service.get_all_users(paginated=True,
                             start=data.get('start'),
                             limit=data.get('limit'))
 
@@ -62,7 +59,7 @@ class User(Resource):
         """To create a new user"""
         parser = get_parser_user()
         data = parser.parse_args()
-        return save_user(data=data)
+        return service.save_user(data=data)
 
 
 @ns.route('/<username>')
@@ -70,14 +67,14 @@ class User(Resource):
 @ns.response(404, fixed.MSG_USER_NOT_FOUND)
 class UserSpecific(Resource):
     @admin_required
-    @ns.marshal_with(userDtoModel)
+    @ns.marshal_with(dto.user)
     @ns.doc(responses={
         200: 'Success',
         404: 'User not found'
     })
     def get(self, username):
         """Get an user given its identifier"""
-        user = get_a_user(username)
+        user = service.get_a_user(username)
         if not user:
             ns.abort(404, fixed.MSG_USER_NOT_FOUND)
         else:
@@ -85,7 +82,7 @@ class UserSpecific(Resource):
 
     @user_required
     @ns.expect(get_parser_update_user(), validate=True)
-    @ns.marshal_with(userResponseDtoModel, skip_none=True)
+    @ns.marshal_with(dto.userResponses, skip_none=True)
     @ns.doc(responses={
         200: fixed.MSG_SUCCESSFULLY_UPDATED,
         404: fixed.MSG_USER_NOT_FOUND
@@ -96,7 +93,7 @@ class UserSpecific(Resource):
             parser = get_parser_update_user()
             data = parser.parse_args()
             data['username'] = username
-            return update_user(data=data)
+            return service.update_user(data=data)
         except Exception as e:
             current_app.logger.error('user/<username> %s', e)
             response_object = {
