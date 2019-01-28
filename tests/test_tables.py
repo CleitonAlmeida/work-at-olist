@@ -3,8 +3,9 @@ import unittest
 import os
 import json
 from call_records import create_app, db
-from call_records.models import Call, Bill
+from call_records.models import Bill
 from call_records.model.user import User
+from call_records.model.call import Call
 
 import unittest
 
@@ -12,7 +13,7 @@ class TestCallModel(unittest.TestCase):
 
     def create_call(self):
         call = Call()
-        call.call_id = 4
+        call.call_id = 888888
         call.initial_timestamp = '2016-02-29T12:00:00-03:00'
         call.end_timestamp = '2016-02-29T14:00:00-03:00'
         call.source_number = '55041991024554'
@@ -36,12 +37,14 @@ class TestCallModel(unittest.TestCase):
         self.app = create_app(config_name="testing")
         with self.app.app_context():
             #db.drop_all()
-            db.session.query(Call).delete()
+            db.session.query(Call).filter_by(call_id=888888).delete()
             db.session.commit()
 
     def test_populate_db(self):
         with self.app.app_context():
-            self.assertEqual(db.session.query(Call).filter_by(call_id=4).first().destination_number, '55041997044972')
+            self.assertEqual(db.session.query(Call)\
+                .filter_by(call_id=888888)\
+                .first().destination_number, '55041997044972')
 
 class TestBillModel(unittest.TestCase):
 
@@ -76,7 +79,8 @@ class TestBillModel(unittest.TestCase):
 
     def test_populate_db(self):
         with self.app.app_context():
-            self.assertEqual(db.session.query(Bill).filter_by(price=117.68).first().subscriber_number, '55041991024554')
+            self.assertEqual(db.session.query(Bill).filter_by(price=117.68)\
+                .first().subscriber_number, '55041991024554')
 
 class TestUserModel(unittest.TestCase):
 
@@ -102,12 +106,15 @@ class TestUserModel(unittest.TestCase):
         self.app = create_app(config_name="testing")
         with self.app.app_context():
             #db.drop_all()
-            db.session.query(User).filter_by(username='cleitonteste').first().delete()
+            db.session.query(User).filter_by(username='cleitonteste')\
+                .first().delete()
             db.session.commit()
 
     def test_populate_db(self):
         with self.app.app_context():
-            self.assertEqual(db.session.query(User).filter_by(username='cleitonteste').first().username, 'cleitonteste')
+            self.assertEqual(db.session.query(User)\
+                .filter_by(username='cleitonteste')\
+                .first().username, 'cleitonteste')
 
 if __name__ == '__main__':
     unittest.main()
