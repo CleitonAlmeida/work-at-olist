@@ -2,10 +2,9 @@ from call_records.model.user import User
 from flask import current_app
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
-    create_refresh_token, get_jwt_identity
+    create_refresh_token, get_jwt_identity, get_raw_jwt
 )
-from flask_jwt_extended import create_access_token, get_raw_jwt
-from call_records.service.tokenblacklist import add_token_to_database, revoke_user_token
+from call_records.service.tokenblacklist import TokenBlackListService
 
 
 class AuthService(object):
@@ -17,7 +16,8 @@ class AuthService(object):
 
                 access_token = create_access_token(identity=user)
                 refresh_token = create_refresh_token(identity=user)
-                add_token_to_database(refresh_token, current_app.config['JWT_IDENTITY_CLAIM'])
+                token_service = TokenBlackListService()
+                token_service.add_token_to_database(refresh_token, current_app.config['JWT_IDENTITY_CLAIM'])
 
                 response_object = {
                     'status': 'success',
@@ -72,7 +72,8 @@ class AuthService(object):
         try:
             #Revoke Current Token
             current_claims = get_raw_jwt()
-            revoke_user_token(current_claims.get('identity'))
+            token_service = TokenBlackListService()
+            token_service.revoke_user_token(current_claims.get('identity'))
             response_object = {
                 'status': 'success',
                 'message': 'Logout Successfully'

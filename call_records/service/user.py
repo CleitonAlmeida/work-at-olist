@@ -1,5 +1,5 @@
 from call_records.model.user import User
-from call_records.service.tokenblacklist import revoke_user_token
+from call_records.service.tokenblacklist import TokenBlackListService
 from call_records.service.util import paginated_list
 from flask_jwt_extended import get_raw_jwt
 from flask import current_app
@@ -33,7 +33,8 @@ class UserService(object):
                 When a password update occurs, we need to revoke the tokens
                 to force a new login
                 """
-                revoke_user_token(user.username)
+                token_service = TokenBlackListService()
+                token_service.revoke_user_token(user.username)
                 response_object = {
                     'status': 'success',
                     'message': 'Successfully updated'

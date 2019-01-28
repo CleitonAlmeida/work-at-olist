@@ -3,7 +3,7 @@ def check_first_admin_user():
     Verify if exists an user admin, and if not, create
     The system can not be run securely containing the admin password in
     the var ADMIN_PASSWORD then, for safety, this function check this
-    and log this event as a warning (if necessary).
+    and log this event as a warning in log (if necessary).
     """
     from flask import current_app
     from call_records.model.user import User

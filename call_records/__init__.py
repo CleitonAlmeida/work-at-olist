@@ -87,8 +87,9 @@ def configure_jwt(app):
     # Define our callback function to check if a token has been revoked or not
     @jwt.token_in_blacklist_loader
     def check_if_token_revoked(decoded_token):
-        from call_records.service.tokenblacklist import is_token_revoked
-        return is_token_revoked(decoded_token)
+        from call_records.service.tokenblacklist import TokenBlackListService
+        token_service = TokenBlackListService()
+        return token_service.is_token_revoked(decoded_token)
 
     return jwt
 
