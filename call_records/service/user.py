@@ -1,6 +1,7 @@
 from call_records.model.user import User
 from call_records.service.tokenblacklist import TokenBlackListService
 from call_records.service.util import paginated_list
+from call_records import fixed
 from flask_jwt_extended import get_raw_jwt
 from flask import current_app
 from flask import request
@@ -21,7 +22,7 @@ class UserService(object):
                 new_user.save()
                 response_object = {
                     'status': 'success',
-                    'message': 'Successfully registered'
+                    'message': fixed.MSG_SUCCESSFULLY_REGISTRED
                 }
                 return response_object, 201
             #Existing User
@@ -37,13 +38,13 @@ class UserService(object):
                 token_service.revoke_user_token(user.username)
                 response_object = {
                     'status': 'success',
-                    'message': 'Successfully updated'
+                    'message': fixed.MSG_SUCCESSFULLY_UPDATED
                 }
                 return response_object, 200
             else:
                 response_object = {
                     'status': 'fail',
-                    'message': 'User already exists. Please Log in',
+                    'message': fixed.MSG_USER_EXISTING,
                 }
                 return response_object, 409
         except Exception as e:
@@ -72,7 +73,7 @@ class UserService(object):
         else:
             response_object = {
                 'status': 'fail',
-                'message': 'You must be admin'
+                'message': fixed.MSG_ONLY_ADMIN
             }
             return response_object, 403
 

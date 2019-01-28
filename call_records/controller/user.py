@@ -30,9 +30,11 @@ def get_parser_update_user():
 def get_parser_pagination():
     parser = reqparse.RequestParser()
     parser.add_argument('start', type=int, required=False, default=1,
-                        help='The position from which the data will be returned')
+                        help='The position from which the data will'+
+                            ' be returned')
     parser.add_argument('limit', type=int, required=False,
-                        help='The max number of items to return from the current position')
+                        help='The max number of items to return'+
+                            ' from the current position')
     return parser
 
 
@@ -46,8 +48,8 @@ class User(Resource):
         parser = get_parser_pagination()
         data = parser.parse_args()
         return service.get_all_users(paginated=True,
-                            start=data.get('start'),
-                            limit=data.get('limit'))
+                                     start=data.get('start'),
+                                     limit=data.get('limit'))
 
     @admin_required
     @ns.expect(get_parser_user(), validate=True)
@@ -70,7 +72,7 @@ class UserSpecific(Resource):
     @ns.marshal_with(dto.user)
     @ns.doc(responses={
         200: 'Success',
-        404: 'User not found'
+        404: fixed.MSG_USER_NOT_FOUND
     })
     def get(self, username):
         """Get an user given its identifier"""
@@ -98,6 +100,6 @@ class UserSpecific(Resource):
             current_app.logger.error('user/<username> %s', e)
             response_object = {
                 'status': 'fail',
-                'message': 'Try again'
+                'message': fixed.MSG_TRY_AGAIN
             }
             return response_object, 500

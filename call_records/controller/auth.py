@@ -2,10 +2,10 @@ from flask import current_app
 from flask_restplus import Resource, Namespace
 from flask_restplus import reqparse
 from flask_jwt_extended import jwt_refresh_token_required, get_raw_jwt
-
 from call_records.controller import user_required
 from call_records.dto.auth import AuthDto
 from call_records.service.auth import AuthService
+from call_records import fixed
 
 service = AuthService()
 ns = Namespace('auth', description='Auth')
@@ -18,13 +18,14 @@ def get_login_parser():
     parser.add_argument('password', type=str, required=True)
     return parser
 
+
 @ns.route('/login')
 class UserLogin(Resource):
     @ns.expect(get_login_parser(), validate=True)
     @ns.marshal_with(dto.authLogIn, skip_none=True)
     @ns.doc(responses={
         200: 'Success',
-        401: 'Username or password does not match'
+        401: fixed.MSG_FAILED_LOGIN
     })
     @ns.doc(security=[])
     def post(self):
@@ -34,6 +35,7 @@ class UserLogin(Resource):
 
         return service.login_user(data=data)
 
+
 @ns.route('/refresh')
 class UserLoginRefresh(Resource):
     @jwt_refresh_token_required
@@ -42,12 +44,13 @@ class UserLoginRefresh(Resource):
         """To get a refresh token"""
         return service.get_refresh_token()
 
+
 @ns.route('/logout')
 class UserLogout(Resource):
     @user_required
     @ns.marshal_with(dto.authResponses, skip_none=True)
     @ns.doc(responses={
-        200: 'Logout Successfully'
+        200: fixed.MSG_SUCCESS_LOGOUT
     })
     def post(self):
         """To logout an user"""

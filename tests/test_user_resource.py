@@ -481,7 +481,6 @@ class TestApi(unittest.TestCase):
             rv = self.client.post('/api/refresh', headers={
                 "Authorization": "Bearer "+self.normal_refresh_token
             })
-            self.app.logger.info('data %s', rv.data)
             self.assertEqual(rv.status_code, 401)
             self.assertEqual(rv.mimetype, 'application/json')
             data = json.loads(rv.data)

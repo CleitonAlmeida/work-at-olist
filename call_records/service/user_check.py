@@ -19,5 +19,5 @@ def check_first_admin_user():
             service.save_user(data)
         if user_admin.verify_password(password=password):
             current_app.logger.warning(
-                'The user\'s password remains the same as the one defined in'+
+                'The user\'s password remains the same as the one defined in' +
                 ' the .env file. For security it is necessary to change it')

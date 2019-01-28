@@ -1,5 +1,6 @@
 from call_records import db
 
+
 class TokenBlacklist(db.Model):
 
     __tablename__ = 'tokenblacklist'

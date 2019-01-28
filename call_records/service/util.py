@@ -1,4 +1,5 @@
 from flask import current_app
+from call_records import fixed
 
 def paginated_list(model, url, start, limit):
     # check if page exists
@@ -7,7 +8,7 @@ def paginated_list(model, url, start, limit):
     if (count < start):
         response_object = {
             'status': 'fail',
-            'message': 'Try again'
+            'message': fixed.MSG_TRY_AGAIN
         }
         return response_object, 404
 
