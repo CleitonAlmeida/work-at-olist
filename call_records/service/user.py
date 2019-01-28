@@ -6,17 +6,18 @@ from flask_jwt_extended import get_raw_jwt
 from flask import current_app
 from flask import request
 
+
 class UserService(object):
 
     def save_user(self, data, is_new=True):
         try:
             user = User.query.filter_by(username=data['username']).first()
-            #New user
+            # New user
             if not user and is_new:
                 new_user = User(
-                    username = data['username'],
-                    password_hash = data['password'],
-                    is_admin = data.get('is_admin', False)
+                    username=data['username'],
+                    password_hash=data['password'],
+                    is_admin=data.get('is_admin', False)
                 )
                 new_user.gen_hash(data['password'])
                 new_user.save()
@@ -25,7 +26,7 @@ class UserService(object):
                     'message': fixed.MSG_SUCCESSFULLY_REGISTRED
                 }
                 return response_object, 201
-            #Existing User
+            # Existing User
             elif user and not is_new:
                 user.gen_hash(data['password'])
                 user.is_admin = data.get('is_admin')
@@ -61,13 +62,13 @@ class UserService(object):
 
         # Admin access
         if user_claims.get('is_admin'):
-            #Admin user can't revoke your own role
+            # Admin user can't revoke your own role
             if data.get('username') == claims.get('identity'):
                 data.pop('is_admin', None)
             return self.save_user(data=data, is_new=False)
         # The Own User access
         elif data.get('username') == claims.get('identity'):
-            #Normal users cant update your own role
+            # Normal users cant update your own role
             data.pop('is_admin', None)
             return self.save_user(data=data, is_new=False)
         else:
@@ -76,6 +77,21 @@ class UserService(object):
                 'message': fixed.MSG_ONLY_ADMIN
             }
             return response_object, 403
+
+    def delete_an_user(self, username):
+        try:
+            user = User.query.filter_by(username=username).first()
+            if user:
+                user.delete()
+                return True
+            else:
+                return False
+        except Exception as e:
+            response_object = {
+                'status': 'fail',
+                'message': e
+            }
+            return response_object, 500
 
     def get_a_user(self, username):
         return User.query.filter_by(username=username).first()

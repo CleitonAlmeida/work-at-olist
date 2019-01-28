@@ -14,3 +14,4 @@ MSG_CONFLICT_CALLS = 'Connection period conflict'
 
 MSG_USER_NOT_FOUND = 'User not found'
 MSG_USER_EXISTING = 'User already exists. Please Log in'
+MSG_USER_DELETED = 'User deleted'

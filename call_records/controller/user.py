@@ -103,3 +103,21 @@ class UserSpecific(Resource):
                 'message': fixed.MSG_TRY_AGAIN
             }
             return response_object, 500
+
+    @admin_required
+    @ns.marshal_with(dto.userResponses)
+    def delete(self, username):
+        """Delete an user given its username"""
+        result = service.delete_an_user(username)
+        if not result:
+            response_object = {
+                'status': 'fail',
+                'message': fixed.MSG_USER_NOT_FOUND
+            }
+            return response_object, 404
+        else:
+            response_object = {
+                'status': 'success',
+                'message': fixed.MSG_USER_DELETED
+            }
+            return response_object, 200
