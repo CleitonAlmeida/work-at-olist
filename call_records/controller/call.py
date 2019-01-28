@@ -15,8 +15,10 @@ dto = CallDto(ns)
 
 def get_parser_pagination():
     parser = reqparse.RequestParser()
-    parser.add_argument('start', type=int, required=False, default=1)
-    parser.add_argument('limit', type=int, required=False)
+    parser.add_argument('start', type=int, required=False, default=1,
+                        help='The position from which the data will be returned')
+    parser.add_argument('limit', type=int, required=False,
+                        help='The max number of items to return from the current position')
     return parser
 
 
@@ -24,18 +26,29 @@ def get_call_parser(type, verb):
     parser = reqparse.RequestParser()
     parser.add_argument('type', type=str,
                         choices=['start', 'end'],
-                        required=True)
+                        required=True,
+                        help='Indicate if it\'s a call start or end record')
     parser.add_argument('timestamp',
                         type=lambda x:
-                            datetime.strptime(x, '%Y-%m-%dT%H:%M:%SZ'),
-                        required=True)
+                        datetime.strptime(x, '%Y-%m-%dT%H:%M:%SZ'),
+                        required=True,
+                        help='The timestamp of when the event occured')
     if type == 'start':
         parser.add_argument(
-            'source', type=service.validate_call_number(), required=True)
+            'source',
+            type=service.validate_call_number(),
+            required=True,
+            help='The subscriber phone number that originated the call')
         parser.add_argument(
-            'destination', type=service.validate_call_number(), required=True)
+            'destination',
+            type=service.validate_call_number(),
+            required=True,
+            help='The phone number receiving the call')
     if verb == 'post':
-        parser.add_argument('call_id', type=int, required=True)
+        parser.add_argument('call_id',
+                            type=int,
+                            required=True,
+                            help='Call identifier. Unique for each call record pair')
     return parser
 
 
@@ -54,9 +67,10 @@ class Call(Resource):
             limit=data.get('limit'))
 
     @user_required
-    @ns.expect(get_call_parser('', 'post'), validate=True)
+    @ns.expect(get_call_parser('start', 'post'), validate=True)
     @ns.marshal_with(dto.callResponses)
     def post(self):
+        """To create a new call registry"""
         type = request.form.get('type')
         parser = get_call_parser(type, 'post')
         data = parser.parse_args()
@@ -82,9 +96,10 @@ class CallSpecific(Resource):
             return call
 
     @user_required
-    @ns.expect(get_call_parser('', 'put'), validate=True)
+    @ns.expect(get_call_parser('start', 'put'), validate=True)
     @ns.marshal_with(dto.callResponses)
     def put(self, call_id):
+        """To update an existing call registry"""
         type = request.form.get('type')
         parser = get_call_parser(type, 'put')
         data = parser.parse_args()
