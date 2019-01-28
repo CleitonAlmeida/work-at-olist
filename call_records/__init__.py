@@ -10,7 +10,7 @@ from .config import app_config
 from flask.logging import default_handler
 from flask_jwt_extended import JWTManager
 
-from call_records.controller import auth, page_not_found
+from call_records.controller import page_not_found
 from call_records.dto.auth import AuthDto
 
 db = SQLAlchemy()
@@ -53,9 +53,9 @@ def configure_restplus(app, jwt):
               authorizations=authorizations,
               security='Bearer Auth')
 
-    from call_records.controller import call, user
+    from call_records.controller import call, user, auth
 
-    api.add_namespace(AuthDto.ns, path='/api')
+    api.add_namespace(auth.ns, path='/api')
     api.add_namespace(user.ns, path='/api/user')
     api.add_namespace(call.ns, path='/api/call')
 
