@@ -1,6 +1,7 @@
 from call_records.model.call import Call
 from call_records.service.util import paginated_list
 from call_records import fixed
+from flask_restplus.errors import ValidationError
 from flask import request, current_app
 from sqlalchemy import between, or_, and_
 from sqlalchemy.orm import exc as sa_exc
@@ -8,6 +9,17 @@ from call_records import db
 
 
 class CallService(object):
+
+    def validate_call_number(self):
+        def validate(n):
+            if len(n) >= 10 and len(n) <= 11:
+                try:
+                    n = int(n)
+                    return n
+                except Exception:
+                    pass
+            raise ValidationError(fixed.MSG_INVALID_PHONE_NUMBER)
+        return validate
 
     def get_calls(self, paginated=False, start=None, limit=None):
         if paginated:

@@ -30,8 +30,10 @@ def get_call_parser(type, verb):
                             datetime.strptime(x, '%Y-%m-%dT%H:%M:%SZ'),
                         required=True)
     if type == 'start':
-        parser.add_argument('source', type=int, required=True)
-        parser.add_argument('destination', type=int, required=True)
+        parser.add_argument(
+            'source', type=service.validate_call_number(), required=True)
+        parser.add_argument(
+            'destination', type=service.validate_call_number(), required=True)
     if verb == 'post':
         parser.add_argument('call_id', type=int, required=True)
     return parser

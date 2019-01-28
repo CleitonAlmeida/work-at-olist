@@ -80,8 +80,8 @@ class TestApi(unittest.TestCase):
             '2016-02-29T12:00:00Z', '%Y-%m-%dT%H:%M:%SZ')
         call.end_timestamp = datetime.strptime(
             '2016-02-29T14:00:00Z', '%Y-%m-%dT%H:%M:%SZ')
-        call.source_number = '55041991024554'
-        call.destination_number = '55041997044972'
+        call.source_number = '41991024554'
+        call.destination_number = '41997044972'
         call.save()
 
     @classmethod
@@ -130,7 +130,29 @@ class TestApi(unittest.TestCase):
                 call.save()
         self.assertEqual(1, 1)"""
 
-    def test_0_0_post_call_start_timestamp(self):
+    def test_0_0_post_call_invalid_number(self):
+        """Test post a call with a phone number invalid"""
+        with self.app.app_context():
+            dt = datetime.now()
+            dt = dt.replace(tzinfo=None)
+            call_id = self.main_call_id+1
+
+            rv = self.client.post('/api/call/', data=dict(
+                call_id=call_id,
+                type='start',
+                source=41999885999887,
+                destination=41999886099,
+                timestamp=dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+            ), headers={
+                "Authorization": "Bearer "+self.normal_access_token
+            })
+            self.assertEqual(rv.status_code, 400)
+            self.assertEqual(rv.mimetype, 'application/json')
+            data = json.loads(rv.data)
+            self.assertEqual(data['errors']['source'],
+                             fixed.MSG_INVALID_PHONE_NUMBER)
+
+    def test_0_1_post_call_start_timestamp(self):
         """Test post a call start"""
         with self.app.app_context():
             dt = datetime.now()
@@ -140,8 +162,8 @@ class TestApi(unittest.TestCase):
             rv = self.client.post('/api/call/', data=dict(
                 call_id=call_id,
                 type='start',
-                source=999885999,
-                destination=999886099,
+                source=41999885999,
+                destination=41999886099,
                 timestamp=dt.strftime("%Y-%m-%dT%H:%M:%SZ")
             ), headers={
                 "Authorization": "Bearer "+self.normal_access_token
@@ -151,7 +173,7 @@ class TestApi(unittest.TestCase):
             data = json.loads(rv.data)
             self.assertEqual(data['status'], 'success')
 
-    def test_0_1_post_start_already_exists(self):
+    def test_0_2_post_start_already_exists(self):
         """Test post a call start that already exists"""
         with self.app.app_context():
             dt = datetime.now()
@@ -161,8 +183,8 @@ class TestApi(unittest.TestCase):
             rv = self.client.post('/api/call/', data=dict(
                 call_id=call_id,
                 type='start',
-                source=999885999,
-                destination=999886099,
+                source=41999885999,
+                destination=41999886099,
                 timestamp=dt.strftime("%Y-%m-%dT%H:%M:%SZ")
             ), headers={
                 "Authorization": "Bearer "+self.normal_access_token
@@ -172,7 +194,7 @@ class TestApi(unittest.TestCase):
             data = json.loads(rv.data)
             self.assertEqual(data['status'], 'fail')
 
-    def test_0_2_post_call_end_timestamp(self):
+    def test_0_3_post_call_end_timestamp(self):
         """Test post a call end"""
         with self.app.app_context():
             dt = datetime.now()
@@ -192,7 +214,7 @@ class TestApi(unittest.TestCase):
             self.assertEqual(rv.mimetype, 'application/json')
             self.assertEqual(data['status'], 'success')
 
-    def test_0_3_post_end_already_exists(self):
+    def test_0_4_post_end_already_exists(self):
         """Test post a call end that already exists"""
         with self.app.app_context():
             dt = datetime.now()
@@ -212,7 +234,7 @@ class TestApi(unittest.TestCase):
             data = json.loads(rv.data)
             self.assertEqual(data['status'], 'fail')
 
-    def test_0_4_put_start(self):
+    def test_0_5_put_start(self):
         """Test put a call start"""
         with self.app.app_context():
             call_id = self.main_call_id+1
@@ -257,7 +279,7 @@ class TestApi(unittest.TestCase):
                 call_id=main_call.call_id+10,
                 type='start',
                 source=main_call.source_number,
-                destination=999886099,
+                destination=41999886099,
                 timestamp=dt.strftime("%Y-%m-%dT%H:%M:%SZ")
             ), headers={
                 "Authorization": "Bearer "+self.normal_access_token
@@ -281,7 +303,7 @@ class TestApi(unittest.TestCase):
                 call_id=call_id,
                 type='start',
                 source=main_call.source_number,
-                destination=999886099,
+                destination=41999886099,
                 timestamp=dt.strftime("%Y-%m-%dT%H:%M:%SZ")
             ), headers={
                 "Authorization": "Bearer "+self.normal_access_token
@@ -293,7 +315,7 @@ class TestApi(unittest.TestCase):
                 call_id=call_id,
                 type='end',
                 source=main_call.source_number,
-                destination=999886099,
+                destination=41999886099,
                 timestamp=dt.strftime("%Y-%m-%dT%H:%M:%SZ")
             ), headers={
                 "Authorization": "Bearer "+self.normal_access_token
@@ -318,7 +340,7 @@ class TestApi(unittest.TestCase):
                 call_id=call_id,
                 type='end',
                 source=main_call.source_number,
-                destination=999886099,
+                destination=41999886099,
                 timestamp=dt.strftime("%Y-%m-%dT%H:%M:%SZ")
             ), headers={
                 "Authorization": "Bearer "+self.normal_access_token
@@ -331,7 +353,7 @@ class TestApi(unittest.TestCase):
                 call_id=call_id,
                 type='start',
                 source=main_call.source_number,
-                destination=999886099,
+                destination=41999886099,
                 timestamp=dt.strftime("%Y-%m-%dT%H:%M:%SZ")
             ), headers={
                 "Authorization": "Bearer "+self.normal_access_token
@@ -352,8 +374,8 @@ class TestApi(unittest.TestCase):
             rv = self.client.post('/api/call/', data=dict(
                 call_id=call_id,
                 type='start',
-                source=999886098,
-                destination=999886019,
+                source=41999886098,
+                destination=41999886019,
                 timestamp=dt.strftime("%Y-%m-%dT%H:%M:%SZ")
             ), headers={
                 "Authorization": "Bearer "+self.normal_access_token
@@ -365,8 +387,8 @@ class TestApi(unittest.TestCase):
             rv = self.client.post('/api/call/', data=dict(
                 call_id=call_id,
                 type='end',
-                source=999886098,
-                destination=999886099,
+                source=41999886098,
+                destination=41999886099,
                 timestamp=dt.strftime("%Y-%m-%dT%H:%M:%SZ")
             ), headers={
                 "Authorization": "Bearer "+self.normal_access_token
