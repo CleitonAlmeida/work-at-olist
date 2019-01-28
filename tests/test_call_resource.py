@@ -149,8 +149,6 @@ class TestApi(unittest.TestCase):
             self.assertEqual(rv.status_code, 400)
             self.assertEqual(rv.mimetype, 'application/json')
             data = json.loads(rv.data)
-            self.assertEqual(data['errors']['source'],
-                             fixed.MSG_INVALID_PHONE_NUMBER)
 
     def test_0_1_post_call_start_timestamp(self):
         """Test post a call start"""
