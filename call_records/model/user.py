@@ -2,15 +2,18 @@ from call_records import db
 from passlib.hash import pbkdf2_sha256
 from passlib import pwd
 
+
 class User(db.Model):
 
     __tablename__ = 'users'
 
-    id = db.Column(db.Integer, primary_key = True)
-    username = db.Column(db.String(32), index = True, unique=True)
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(32), index=True, unique=True)
     password_hash = db.Column(db.String(128))
-    _is_admin = db.Column('is_admin', db.Boolean(), nullable=False, default=False)
-    date_created = db.Column(db.DateTime(timezone=True), default=db.func.current_timestamp())
+    _is_admin = db.Column('is_admin', db.Boolean(),
+                          nullable=False, default=False)
+    date_created = db.Column(db.DateTime(timezone=True),
+                             default=db.func.current_timestamp())
     date_modified = db.Column(
         db.DateTime(timezone=True), default=db.func.current_timestamp(),
         onupdate=db.func.current_timestamp())

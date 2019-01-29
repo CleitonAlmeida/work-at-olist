@@ -10,15 +10,15 @@ from .config import app_config
 from flask.logging import default_handler
 from flask_jwt_extended import JWTManager
 
-from call_records.controller import user, auth,\
-    page_not_found
-from call_records.dto.user import UserDto
+from call_records.controller import page_not_found
 from call_records.dto.auth import AuthDto
 
 db = SQLAlchemy()
 
+
 def configure_db(app):
     db.init_app(app)
+
 
 def configure_logging(app, config_name):
     """ Configure logging. """
@@ -27,17 +27,23 @@ def configure_logging(app, config_name):
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 
-    log_file_handler = RotatingFileHandler(app_config[config_name].LOG_PATH, int(app_config[config_name].LOG_MAX_BYTES), int(app_config[config_name].LOG_BACKUP_COUNT))
+    log_file_handler = RotatingFileHandler(
+        app_config[config_name].LOG_PATH,
+        int(app_config[config_name].LOG_MAX_BYTES),
+        int(app_config[config_name].LOG_BACKUP_COUNT))
     log_file_handler.setLevel(logging.INFO)
-    log_file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
+    log_file_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
 
     logger.addHandler(log_file_handler)
     app.logger.removeHandler(default_handler)
     app.logger.setLevel(logging.INFO)
     app.logger.addHandler(log_file_handler)
 
+
 def configure_blueprint(app):
     app.register_blueprint(home.bp)
+
 
 def configure_restplus(app, jwt):
     authorizations = {
@@ -50,19 +56,21 @@ def configure_restplus(app, jwt):
     api = Api(app,
               title='FLASK API CALL RECORDS',
               version='1.0',
-              description='An api for receives call detail records and calculates monthly bills',
+              description='An api for receives call detail '+
+                'records and calculates monthly bills',
               doc='/api',
               authorizations=authorizations,
               security='Bearer Auth')
 
-    from call_records.controller import call
+    from call_records.controller import call, user, auth
 
-    api.add_namespace(AuthDto.ns, path='/api')
-    api.add_namespace(UserDto.ns, path='/api/user')
+    api.add_namespace(auth.ns, path='/api')
+    api.add_namespace(user.ns, path='/api/user')
     api.add_namespace(call.ns, path='/api/call')
 
-    #https://github.com/vimalloc/flask-jwt-extended/issues/86
+    # https://github.com/vimalloc/flask-jwt-extended/issues/86
     jwt._set_error_handler_callbacks(api)
+
 
 def configure_jwt(app):
     app.config['JWT_SECRET_KEY'] = 'AUIRgoasdgfuyAUYFaisuebf'  # Change this!
@@ -89,10 +97,12 @@ def configure_jwt(app):
     # Define our callback function to check if a token has been revoked or not
     @jwt.token_in_blacklist_loader
     def check_if_token_revoked(decoded_token):
-        from call_records.service.tokenblacklist import is_token_revoked
-        return is_token_revoked(decoded_token)
+        from call_records.service.tokenblacklist import TokenBlackListService
+        token_service = TokenBlackListService()
+        return token_service.is_token_revoked(decoded_token)
 
     return jwt
+
 
 def configure_user_admin(app):
     username = app.config.get('ADMIN_USERNAME')
@@ -100,11 +110,13 @@ def configure_user_admin(app):
 
     if username and password:
         app.app_context().push()
-        from call_records.service.user import check_first_admin_user
+        from call_records.service.user_check import check_first_admin_user
         check_first_admin_user()
+
 
 def configure_error_handler(app):
     app.register_error_handler(404, page_not_found)
+
 
 def create_app(config_name):
     app = Flask(__name__, instance_relative_config=True)

@@ -1,9 +1,8 @@
-# /instance/config.py
-
 import os
-#To load .env variables
+# To load .env variables
 from dotenv import load_dotenv
 load_dotenv()
+
 
 def env_var(key, default=None, required=False):
     """ Parse environment variable accordingly. """
@@ -22,9 +21,10 @@ def env_var(key, default=None, required=False):
 
     return val
 
+
 class Config(object):
     """Parent configuration class."""
-    #Flask variables
+    # Flask variables
     FLASK_ENV = env_var('FLASK_ENV', default=None)
     FLASK_APP = env_var('FLASK_APP', default='run.py')
     HOST = env_var('HOST', default='0.0.0.0')
@@ -39,7 +39,8 @@ class Config(object):
     FILE_LOGGING = True
 
     try:
-        if not os.path.exists(LOG_FOLDER) or not os.access(LOG_FOLDER, os.W_OK):
+        if not os.path.exists(LOG_FOLDER) or \
+                not os.access(LOG_FOLDER, os.W_OK):
             os.mkdir(LOG_FOLDER)
     except Exception:
         FILE_LOGGING = False

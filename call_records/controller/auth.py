@@ -1,16 +1,15 @@
 from flask import current_app
-from flask_restplus import Resource
+from flask_restplus import Resource, Namespace
 from flask_restplus import reqparse
 from flask_jwt_extended import jwt_refresh_token_required, get_raw_jwt
-
 from call_records.controller import user_required
 from call_records.dto.auth import AuthDto
-from call_records.service.auth import login_user, get_refresh_token, logout_user
+from call_records.service.auth import AuthService
+from call_records import fixed
 
-ns = AuthDto.ns
-authLogInDtoModel = AuthDto.authLogIn
-authRefreshDtoModel = AuthDto.authRefresh
-authResponsesDtoModel = AuthDto.authResponses
+service = AuthService()
+ns = Namespace('auth', description='Auth')
+dto = AuthDto(ns)
 
 
 def get_login_parser():
@@ -19,13 +18,14 @@ def get_login_parser():
     parser.add_argument('password', type=str, required=True)
     return parser
 
+
 @ns.route('/login')
 class UserLogin(Resource):
     @ns.expect(get_login_parser(), validate=True)
-    @ns.marshal_with(authLogInDtoModel, skip_none=True)
+    @ns.marshal_with(dto.authLogIn, skip_none=True)
     @ns.doc(responses={
         200: 'Success',
-        401: 'Username or password does not match'
+        401: fixed.MSG_FAILED_LOGIN
     })
     @ns.doc(security=[])
     def post(self):
@@ -33,23 +33,25 @@ class UserLogin(Resource):
         parser = get_login_parser()
         data = parser.parse_args()
 
-        return login_user(data=data)
+        return service.login_user(data=data)
+
 
 @ns.route('/refresh')
 class UserLoginRefresh(Resource):
     @jwt_refresh_token_required
-    @ns.marshal_with(authRefreshDtoModel, skip_none=True)    
+    @ns.marshal_with(dto.authRefresh, skip_none=True)
     def post(self):
         """To get a refresh token"""
-        return get_refresh_token()
+        return service.get_refresh_token()
+
 
 @ns.route('/logout')
 class UserLogout(Resource):
     @user_required
-    @ns.marshal_with(authResponsesDtoModel, skip_none=True)
+    @ns.marshal_with(dto.authResponses, skip_none=True)
     @ns.doc(responses={
-        200: 'Logout Successfully'
+        200: fixed.MSG_SUCCESS_LOGOUT
     })
     def post(self):
         """To logout an user"""
-        return logout_user()
+        return service.logout_user()
