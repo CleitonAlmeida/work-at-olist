@@ -8,7 +8,7 @@ from flask import json
 
 class TestApi(unittest.TestCase):
 
-    """ Tests for API. """
+    """ Tests for API """
     # Users for tests (normal 'username' and admin 'username_a')
     username = 'teste'
     password = 'teste123'
@@ -87,7 +87,7 @@ class TestApi(unittest.TestCase):
 
     def test_0_get_list_user(self):
         """ Tests that API route returns 200 and JSON mimetype
-        and minimum two users registred. """
+        and minimum two users registred """
         with self.app.app_context():
             rv = self.client.get('/api/user/', headers={
                 "Authorization": "Bearer "+self.admin_access_token
@@ -116,7 +116,7 @@ class TestApi(unittest.TestCase):
             self.assertEqual(data['message'], fixed.MSG_ONLY_ADMIN)
 
     def test_1_post_user(self):
-        """ Tests that API route post an user. """
+        """ Tests that API route post an user """
         with self.app.app_context():
             rv = self.client.post('/api/user/', data=dict(
                 username='test_1',
@@ -131,7 +131,7 @@ class TestApi(unittest.TestCase):
             self.assertEqual(data['status'], 'success')
 
     def test_1_post_user_unauthorized(self):
-        """ Tests that API route post an user with an non-admin user. """
+        """ Tests that API route post an user with an non-admin user """
         with self.app.app_context():
             rv = self.client.post('/api/user/', data=dict(
                 username='test_1',
@@ -147,7 +147,7 @@ class TestApi(unittest.TestCase):
             self.assertEqual(data['message'], fixed.MSG_ONLY_ADMIN)
 
     def test_1_post_user_empty_fields(self):
-        """ Tests that API inform empty fields. """
+        """ Tests that API inform empty fields """
         with self.app.app_context():
             rv = self.client.post('/api/user/', data=dict(
                 username=self.username
@@ -163,7 +163,7 @@ class TestApi(unittest.TestCase):
                           data['errors'].get('password'))
 
     def test_1_post_user_already_exists(self):
-        """ Tests that API route post an user already exists. """
+        """ Tests that API route post an user already exists """
         with self.app.app_context():
             rv = self.client.post('/api/user/', data=dict(
                 username=self.username,
@@ -180,7 +180,7 @@ class TestApi(unittest.TestCase):
             self.assertEqual(data['message'], fixed.MSG_USER_EXISTING)
 
     def test_2_get_specific_user_admin(self):
-        """ Tests that API get a specific user (admin). """
+        """ Tests that API get a specific user (admin) """
         with self.app.app_context():
             rv = self.client.get('/api/user/'+self.username_a, headers={
                 "Authorization": "Bearer "+self.admin_access_token
@@ -192,7 +192,7 @@ class TestApi(unittest.TestCase):
             self.assertEqual(data['username'], self.username_a)
 
     def test_2_get_specific_user(self):
-        """ Tests that API get a specific user. """
+        """ Tests that API get a specific user """
         with self.app.app_context():
             rv = self.client.get('/api/user/'+self.username, headers={
                 "Authorization": "Bearer "+self.admin_access_token
@@ -204,7 +204,7 @@ class TestApi(unittest.TestCase):
             self.assertEqual(data['username'], self.username)
 
     def test_2_get_specific_user_unauthorized(self):
-        """ Tests that API get a specific user with an non-admin user. """
+        """ Tests that API get a specific user with an non-admin user """
         with self.app.app_context():
             rv = self.client.get('/api/user/'+self.username, headers={
                 "Authorization": "Bearer "+self.normal_access_token
@@ -226,7 +226,7 @@ class TestApi(unittest.TestCase):
             self.assertEqual(rv.mimetype, 'application/json')
 
     def test_3_refresh_token_admin(self):
-        """ Tests that API get a refresh token (admin). """
+        """ Tests that API get a refresh token (admin) """
         with self.app.app_context():
             old_token = self.admin_access_token
             rv = self.client.post('/api/refresh', headers={
@@ -248,7 +248,7 @@ class TestApi(unittest.TestCase):
             self.assertEqual(rv.mimetype, 'application/json')
 
     def test_3_1_refresh_token(self):
-        """ Tests that API get a refresh token. """
+        """ Tests that API get a refresh token """
         with self.app.app_context():
             old_token = self.normal_access_token
             rv = self.client.post('/api/refresh', headers={
@@ -408,7 +408,6 @@ class TestApi(unittest.TestCase):
             """
             self.assertFalse(user.is_admin)
             self.__class__.password = new_pass
-
             # Another request with the new password
             rv = self.login_request(self.username, self.password)
             data = json.loads(rv.data)
@@ -459,7 +458,7 @@ class TestApi(unittest.TestCase):
             self.assertFalse(user.is_admin)
 
     def test_5_logout(self):
-        """ Tests logout. """
+        """ Tests logout """
         with self.app.app_context():
             # New request to update access_token
             rv = self.login_request(self.username, self.password)
@@ -486,6 +485,37 @@ class TestApi(unittest.TestCase):
             data = json.loads(rv.data)
             self.assertEqual(data['msg'], 'Token has been revoked')
 
+    def test_6_normal_user_delete_other(self):
+        """ Tests logout """
+        with self.app.app_context():
+            # Request to logout
+            rv = self.client.delete('/api/user/'+self.username_a, headers={
+                "Authorization": "Bearer "+self.normal_access_token
+            })
+            data = json.loads(rv.data)
+            self.assertEqual(rv.status_code, 403)
+            self.assertEqual(rv.mimetype, 'application/json')
+            self.assertEqual(data['status'], 'fail')
+            self.assertEqual(data['message'], fixed.MSG_ONLY_ADMIN)
+
+    def test_6_admin_delete_user(self):
+        """ Tests delete """
+        with self.app.app_context():
+            # New request to update access_token admin
+            rv = self.login_request(self.username_a, self.password_a)
+            data = json.loads(rv.data)
+            self.__class__.admin_access_token = data['access_token']
+            self.__class__.admin_refresh_token = data['refresh_token']
+
+            # Request to logout
+            rv = self.client.delete('/api/user/'+self.username, headers={
+                "Authorization": "Bearer "+self.admin_access_token
+            })
+            data = json.loads(rv.data)
+            self.assertEqual(rv.status_code, 200)
+            self.assertEqual(rv.mimetype, 'application/json')
+            self.assertEqual(data['status'], 'success')
+            self.assertEqual(data['message'], fixed.MSG_USER_DELETED)
 
 if __name__ == '__main__':
     unittest.main()
