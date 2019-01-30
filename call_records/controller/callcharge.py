@@ -78,3 +78,22 @@ class CallCharge(Resource):
         parser = get_callcharge_parser()
         data = parser.parse_args()
         return service.save_callcharge(data=data)
+
+
+@ns.route('/<int:charge_id>')
+@ns.param('charge_id', 'The CallCharge identifier')
+@ns.response(404, fixed.MSG_CALL_CHARGER_NOT_FOUND)
+class CallChargeSpecific(Resource):
+    @admin_required
+    @ns.marshal_with(dto.callcharge, skip_none=True)
+    def get(self, charge_id):
+        """Get a call charge given its ID"""
+        callcharge = service.get_a_callcharge(charge_id)
+        if not callcharge:
+            response_object = {
+                'status': 'fail',
+                'message': fixed.MSG_CALL_CHARGER_NOT_FOUND
+            }
+            return response_object, 404
+        else:
+            return callcharge

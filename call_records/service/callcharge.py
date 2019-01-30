@@ -44,3 +44,10 @@ class CallChargeService(object):
                                   start=start, limit=limit)
         else:
             return CallCharge.query.all()
+
+    def get_a_callcharge(self, charge_id):
+        callcharge = CallCharge.query.filter_by(charge_id=charge_id).first()
+        if callcharge:
+            return callcharge
+        else:
+            return {}, 404

@@ -179,3 +179,27 @@ class TestCallCharge(unittest.TestCase):
                 page += 1
 
             self.assertEqual(count, 1)
+
+    def test_1_1_get_specific_callcharges(self):
+        """ Tests get a specific callcharge """
+        with self.app.app_context():
+            callcharge = CallCharge.query.filter(
+                CallCharge.charge_id == self.callcharge_id).one()
+            rv = self.client.get('/api/callcharge/'+str(self.callcharge_id),
+                                 headers={
+                "Authorization": "Bearer "+self.admin_access_token
+            })
+
+            data = json.loads(rv.data)
+            #self.logger.info('data %s', data)
+            self.assertEqual(rv.status_code, 200)
+            self.assertEqual(rv.mimetype, 'application/json')
+            self.assertEqual(data['charge_id'], self.callcharge_id)
+            self.assertEqual(data['from_time'],
+                             callcharge.from_time.strftime('%H:%M'))
+            self.assertEqual(
+                data['to_time'], callcharge.to_time.strftime('%H:%M'))
+            self.assertEqual(data['standing_charge'],
+                             float(callcharge.standing_charge))
+            self.assertEqual(data['minute_charge'],
+                             float(callcharge.minute_charge))
