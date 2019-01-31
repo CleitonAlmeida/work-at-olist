@@ -1,5 +1,6 @@
 MSG_SUCCESSFULLY_REGISTRED = 'Successfully registered'
 MSG_SUCCESSFULLY_UPDATED = 'Successfully updated'
+MSG_SUCCESSFULLY_DELETED = 'Successfully deleted'
 MSG_ACTION_NOT_ALLOWED = 'Action not allowed'
 MSG_404 = 'Page not found'
 MSG_ONLY_ADMIN = 'You must be admin'
@@ -15,3 +16,6 @@ MSG_CONFLICT_CALLS = 'Connection period conflict'
 MSG_USER_NOT_FOUND = 'User not found'
 MSG_USER_EXISTING = 'User already exists. Please Log in'
 MSG_USER_DELETED = 'User deleted'
+
+MSG_CALL_CHARGER_NOT_FOUND = 'Call Charge not found'
+MSG_CONFLICT_CALL_CHARGER = 'Call Charge period conflict'

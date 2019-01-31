@@ -62,11 +62,12 @@ def configure_restplus(app, jwt):
               authorizations=authorizations,
               security='Bearer Auth')
 
-    from call_records.controller import call, user, auth
+    from call_records.controller import call, user, auth, callcharge
 
     api.add_namespace(auth.ns, path='/api')
     api.add_namespace(user.ns, path='/api/user')
     api.add_namespace(call.ns, path='/api/call')
+    api.add_namespace(callcharge.ns, path='/api/callcharge')
 
     # https://github.com/vimalloc/flask-jwt-extended/issues/86
     jwt._set_error_handler_callbacks(api)
