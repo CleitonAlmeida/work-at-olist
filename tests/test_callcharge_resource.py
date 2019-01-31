@@ -77,9 +77,13 @@ class TestCallCharge(unittest.TestCase):
                 username=cls.username_a).one().delete()
         except sa_exc.NoResultFound as e:
             pass
+
         try:
-            callcharge = db.session.query(CallCharge).filter_by(
-                charge_id=cls.callcharge_id).one().delete()
+            callcharge = db.session.query(CallCharge).filter(
+                CallCharge.charge_id >= cls.callcharge_id)
+            for c in callcharge.all():
+                c.delete()
+                # pass
         except sa_exc.NoResultFound as e:
             pass
 
@@ -107,8 +111,8 @@ class TestCallCharge(unittest.TestCase):
         with self.app.app_context():
             rv = self.client.post('/api/callcharge/', data=dict(
                 charge_id=self.callcharge_id,
-                from_time='22:00',
-                to_time='06:00',
+                from_time='06:00',
+                to_time='22:00',
                 standing_charge=0.36,
                 minute_charge=0.00
             ), headers={
@@ -125,8 +129,8 @@ class TestCallCharge(unittest.TestCase):
         with self.app.app_context():
             rv = self.client.post('/api/callcharge/', data=dict(
                 charge_id=self.callcharge_id,
-                from_time='22:00',
-                to_time='06:00',
+                from_time='06:00',
+                to_time='22:00',
                 standing_charge=0.36,
                 minute_charge=0.00
             ), headers={
@@ -138,13 +142,44 @@ class TestCallCharge(unittest.TestCase):
             self.assertEqual(data['status'], 'success')
             self.assertEqual(data['message'], fixed.MSG_SUCCESSFULLY_REGISTRED)
 
-    def test_0_3_try_update_via_post(self):
+    def test_0_3_post_callcharge_invalid_period(self):
+        """ Test post a callcharge with invalid period """
+        with self.app.app_context():
+            new_charge_id = self.callcharge_id+1
+            # Try to post callcharge with a different periods
+            # all of them invalid
+            periods = (
+                ('03:00', '03:00'),
+                ('03:00', '06:00'),
+                ('03:00', '06:05'),
+                ('06:00', '22:00'),
+                ('06:30', '21:30'),
+                ('22:00', '23:59'),
+                ('20:00', '23:59'),
+            )
+            for period in periods:
+                rv = self.client.post('/api/callcharge/', data=dict(
+                    charge_id=new_charge_id,
+                    from_time=period[0],
+                    to_time=period[1],
+                    standing_charge=0,
+                    minute_charge=0
+                ), headers={
+                    "Authorization": "Bearer "+self.admin_access_token
+                })
+                data = json.loads(rv.data)
+                self.assertEqual(rv.status_code, 409)
+                self.assertEqual(data['status'], 'fail')
+                self.assertEqual(
+                    data['message'], fixed.MSG_CONFLICT_CALL_CHARGER)
+
+    def test_0_4_try_update_via_post(self):
         """Test update a callcharger via post"""
         with self.app.app_context():
             rv = self.client.post('/api/callcharge/', data=dict(
                 charge_id=self.callcharge_id,
-                from_time='22:00',
-                to_time='06:00',
+                from_time='06:00',
+                to_time='22:00',
                 standing_charge=0.36,
                 minute_charge=0.00
             ), headers={
@@ -203,3 +238,132 @@ class TestCallCharge(unittest.TestCase):
                              float(callcharge.standing_charge))
             self.assertEqual(data['minute_charge'],
                              float(callcharge.minute_charge))
+
+    def test_1_2_get_specific_callcharges_nonexistent(self):
+        """ Tests get a specific callcharge nonexistent"""
+        with self.app.app_context():
+
+            rv = self.client.get('/api/callcharge/7777',
+                                 headers={
+                                     "Authorization": "Bearer " +
+                                     self.admin_access_token
+                                 })
+
+            data = json.loads(rv.data)
+            #self.logger.info('data %s', data)
+            self.assertEqual(rv.status_code, 404)
+
+    def test_2_0_put_callcharge(self):
+        """ Tests put a callcharge """
+        with self.app.app_context():
+            # Create another one
+            new_charge_id = self.callcharge_id+1
+
+            rv = self.client.post('/api/callcharge/', data=dict(
+                charge_id=new_charge_id,
+                from_time='22:01',
+                to_time='23:59',
+                standing_charge=0.36,
+                minute_charge=0.10
+            ), headers={
+                "Authorization": "Bearer "+self.admin_access_token
+            })
+            data = json.loads(rv.data)
+            self.assertEqual(rv.status_code, 201)
+
+            # Try to update
+            rv = self.client.put('/api/callcharge/'+str(new_charge_id),
+                                 data=dict(
+                from_time='22:30',
+                to_time='23:00',
+                standing_charge=0.38,
+                minute_charge=0.11
+            ), headers={
+                "Authorization": "Bearer "+self.admin_access_token
+            })
+            data = json.loads(rv.data)
+            self.assertEqual(rv.status_code, 200)
+
+            callcharge = CallCharge.query.filter(
+                CallCharge.charge_id == new_charge_id).one()
+            self.assertEqual(callcharge.from_time.strftime('%H:%M'), '22:30')
+            self.assertEqual(callcharge.to_time.strftime('%H:%M'), '23:00')
+            self.assertEqual(float(callcharge.standing_charge), 0.38)
+            self.assertEqual(float(callcharge.minute_charge), 0.11)
+
+    def test_2_1_put_callcharge_invalid_period(self):
+        """ Test put a callcharge with invalid period """
+        with self.app.app_context():
+            # Create another one
+            new_charge_id = self.callcharge_id+2
+
+            rv = self.client.post('/api/callcharge/', data=dict(
+                charge_id=new_charge_id,
+                from_time='23:30',
+                to_time='23:59',
+                standing_charge=0.36,
+                minute_charge=0.10
+            ), headers={
+                "Authorization": "Bearer "+self.admin_access_token
+            })
+            data = json.loads(rv.data)
+            self.assertEqual(rv.status_code, 201)
+            # Try to update callcharge with a different periods
+            # all of them invalid
+            periods = (
+                ('03:00', '03:00'),
+                ('03:00', '06:00'),
+                ('03:00', '06:05'),
+                ('06:00', '22:00'),
+                ('06:30', '21:30'),
+                ('22:00', '23:59'),
+                ('20:00', '23:59'),
+            )
+            for period in periods:
+                rv = self.client.put('/api/callcharge/'+str(new_charge_id),
+                                     data=dict(
+                    from_time=period[0],
+                    to_time=period[1],
+                    standing_charge=0,
+                    minute_charge=0
+                ), headers={
+                    "Authorization": "Bearer "+self.admin_access_token
+                })
+                data = json.loads(rv.data)
+                self.assertEqual(rv.status_code, 409)
+                self.assertEqual(data['status'], 'fail')
+                self.assertEqual(
+                    data['message'], fixed.MSG_CONFLICT_CALL_CHARGER)
+
+    def test_3_0_delete_callcharge(self):
+        """ Test delete a call """
+        with self.app.app_context():
+            rv = self.client.delete('/api/callcharge/'+str(self.callcharge_id),
+                                    headers={
+                "Authorization": "Bearer "+self.admin_access_token
+            })
+            data = json.loads(rv.data)
+            self.assertEqual(rv.status_code, 200)
+            self.assertEqual(rv.mimetype, 'application/json')
+            self.assertEqual(data['status'], 'success')
+            self.assertEqual(data['message'], fixed.MSG_SUCCESSFULLY_DELETED)
+
+            try:
+                callcharge = db.session.query(CallCharge).filter(
+                    CallCharge.charge_id == self.callcharge_id).one()
+            except sa_exc.NoResultFound as e:
+                callcharge = None
+            self.assertEqual(callcharge, None)
+
+    def test_3_1_delete_nonexistent_call(self):
+        """ Test delete a nonexistent call """
+        with self.app.app_context():
+            rv = self.client.delete('/api/callcharge/'+str(self.callcharge_id),
+                                    headers={
+                "Authorization": "Bearer "+self.admin_access_token
+            })
+            data = json.loads(rv.data)
+            self.assertEqual(rv.status_code, 404)
+            self.assertEqual(rv.mimetype, 'application/json')
+            self.assertEqual(data['status'], 'fail')
+            self.assertEqual(data['message'], fixed.MSG_CALL_CHARGER_NOT_FOUND)

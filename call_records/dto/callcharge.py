@@ -3,12 +3,14 @@ from datetime import datetime, time
 from call_records.dto import standardPaginationDtoModel,\
     standardResponseDtoModel
 
+
 class TimeField(fields.Raw):
     def format(self, value):
         if isinstance(value, time):
             return value.strftime("%H:%M")
         else:
             return str(value)
+
 
 class CallChargeDto(object):
 

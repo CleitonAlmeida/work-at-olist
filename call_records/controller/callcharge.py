@@ -24,13 +24,14 @@ def get_parser_pagination():
     return parser
 
 
-def get_callcharge_parser():
+def get_callcharge_parser(verb):
     parser = reqparse.RequestParser()
-    parser.add_argument('charge_id',
-                        type=int,
-                        required=True,
-                        help='CallCharge identifier. Unique for each call' +
-                        ' charge record')
+    if verb == 'post':
+        parser.add_argument('charge_id',
+                            type=int,
+                            required=True,
+                            help='CallCharge identifier. Unique for each call' +
+                            ' charge record')
     parser.add_argument('from_time',
                         type=lambda x: datetime.strptime(x,
                                                          '%H:%M').time(),
@@ -71,11 +72,11 @@ class CallCharge(Resource):
             limit=data.get('limit'))
 
     @admin_required
-    @ns.expect(get_callcharge_parser(), validate=True)
+    @ns.expect(get_callcharge_parser('post'), validate=True)
     @ns.marshal_with(dto.callChargeResponses)
     def post(self):
         """To create a new callcharge registry"""
-        parser = get_callcharge_parser()
+        parser = get_callcharge_parser('post')
         data = parser.parse_args()
         return service.save_callcharge(data=data)
 
@@ -97,3 +98,30 @@ class CallChargeSpecific(Resource):
             return response_object, 404
         else:
             return callcharge
+
+    @admin_required
+    @ns.expect(get_callcharge_parser('put'), validate=True)
+    @ns.marshal_with(dto.callChargeResponses)
+    def put(self, charge_id):
+        """To update an existing call charge registry"""
+        parser = get_callcharge_parser('put')
+        data = parser.parse_args()
+        return service.update_callcharge(charge_id=charge_id, data=data)
+
+    @admin_required
+    @ns.marshal_with(dto.callChargeResponses)
+    def delete(self, charge_id):
+        """Delete a charge_id given its ID"""
+        result = service.delete_a_callcharge(int(charge_id))
+        if not result:
+            response_object = {
+                'status': 'fail',
+                'message': fixed.MSG_CALL_CHARGER_NOT_FOUND
+            }
+            return response_object, 404
+        else:
+            response_object = {
+                'status': 'success',
+                'message': fixed.MSG_SUCCESSFULLY_DELETED
+            }
+            return response_object, 200
